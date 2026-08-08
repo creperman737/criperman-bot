@@ -6,7 +6,6 @@ import sqlite3
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.enums import ChatMemberStatus
 from aiogram.filters import Command
 
 # =========================================================
@@ -469,13 +468,14 @@ async def chat_listener(message: types.Message):
 
     # Admin bo'lsa filtrga tushmaydi
     try:
-        if message.from_user is not None:
-            member = await message.chat.get_member(message.from_user.id)
-            if member.status in (
-                ChatMemberStatus.ADMINISTRATOR,
-                ChatMemberStatus.CREATOR,
-            ):
-                return
+
+        member = await message.chat.get_member(
+            message.from_user.id
+        )
+
+        if member.status in ("administrator", "creator"):
+            return
+
     except Exception:
         pass
 

@@ -12,7 +12,7 @@ from aiogram.filters import Command
 # CONFIG
 # =========================================================
 
-TOKEN = os.getenv("8649569111:AAFcgv4xxIv1y3AK76ntuP__g1FAl8v2fkc")
+TOKEN = os.getenv("BOT_TOKEN")
 
 if not TOKEN:
     raise RuntimeError("BOT_TOKEN environment variable topilmadi!")

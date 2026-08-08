@@ -579,6 +579,9 @@ async def main():
 
     await on_startup()
 
+    # Ensure any active webhook is removed so polling (getUpdates) can be used without conflict.
+    await bot.delete_webhook(drop_pending_updates=True)
+
     await dp.start_polling(bot)
 
 

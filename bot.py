@@ -29,7 +29,7 @@ UZ_TZ = ZoneInfo("Asia/Tashkent")
 DB_NAME = "criperman_bot.db"
 
 # Donate linking
-DONATE_LINK = "SENING_DONATE_LINKING"
+DONATE_LINK = "https://idonate.uz/d/deeKARL"
 
 # =========================================================
 # DATABASE
@@ -83,6 +83,28 @@ MY_CHANNELS = [
     "🔥 Minecraft: https://www.youtube.com/@Crimson_criperman"
 ]
 
+GROUP_CHANNELS = {
+    # Har bir guruhning public username'iga qarab kanal ro'yxatini yuboradi.
+    # Siz berilgan 3 ta guruh uchun quyidagicha sozlaysiz.
+
+    "@dee_KARLUZ_GROUP": [
+        "assosy kanalim https://www.youtube.com/@deeKARL",
+        "qosimcha kanalim https://www.youtube.com/@deeKARL_story-games",
+    ],
+
+    "@criperman_chat": [
+        "💻 Dasturlash: https://www.youtube.com/@criperman_coding",
+        "👨‍👩‍👧‍👦 Asosiy kanal: https://www.youtube.com/@criperman_family",
+        "🎮 O'yinlar: https://www.youtube.com/@criperman_games",
+        "🔥 Minecraft: https://www.youtube.com/@Crimson_criperman",
+    ],
+
+    "@verstak_uz": [
+        "minecraft serverlar vazisida videolar topasiz: https://www.youtube.com/@Verstak_server_uz",
+        "assoy kanalim https://www.youtube.com/@MCRetro_08",
+    ]
+}
+
 
 # =========================================================
 # SPLASH TEXTS
@@ -105,7 +127,111 @@ SPLASH_TEXTS = [
     "🍕 Pitsa + kod = yaxshi kun.",
     "🚀 Serverlar qiziyapti!",
     "🐱 Mushuk klaviaturaga chiqib ketmasin!",
-    "💚 Never Give Up!"
+    "💚 Never Give Up!",
+    "👀 Qachon o'zingizga e'tibor bergansiz?",
+    "🧠 Miyangizga bugun yangi g'oya kelmadimi?",
+    "🔧 Har bir muammo — yangi tajriba.",
+    "💾 Ishingizni saqlashni unutmayapsizmi?",
+    "⌨️ Klaviatura bugun ham jangga tayyor.",
+    "🖥️ Kompyuter jim, lekin ishlar davom etmoqda.",
+    "🌐 Internet bor ekan, imkoniyatlar ham bor.",
+    "🚀 Sekin bo'lsa ham oldinga yurish — yurish.",
+    "🎯 Maqsadni bilsangiz, yo'l topiladi.",
+    "🧩 Ba'zan javob bitta kichik detalda yashiringan.",
+    "🔍 Bugun nimanidir boshqacha ko'rishga harakat qiling.",
+    "📚 Biror yangi narsa o'rganib qo'ying.",
+    "☕ Kod yozishda choy ham sherik.",
+    "😂 Bug ham ba'zida dasturchining do'sti.",
+    "🐛 Bug topildi. Endi u sizniki.",
+    "🛠️ Ishlamasa, yana bir marta tekshiring.",
+    "💡 G'oya kichik bo'lishi mumkin, natijasi katta bo'ladi.",
+    "🌱 Har bir loyiha kichik qadamdan boshlanadi.",
+    "🔥 Bugun ham taslim bo'lmaymiz.",
+    "🏆 Natija emas, jarayon ham muhim.",
+    "🎮 Bir blokdan butun shahar qurish mumkin.",
+    "⛏️ Minecraft kutmoqda.",
+    "🧱 Bitta blok qo'ying. Keyin yana bittasini.",
+    "🌳 Daraxtni kesishdan oldin ko'chat ekishni unutmang.",
+    "🐄 Minecraftdagi sigirlar ham sizni kutyapti.",
+    "💎 Olmos topishdan oldin tosh qaziladi.",
+    "🌋 Lava bilan hazillashmang.",
+    "🐷 Piglinlar bilan ehtiyot bo'ling.",
+    "👾 Creeper orqangizda bo'lishi mumkin. 👀",
+    "🏠 Uy qurish — sarguzashtning boshlanishi.",
+    "🌙 Kechasi Minecraftda hamma narsa boshqacha.",
+    "☀️ Yangi kun — yangi imkoniyat.",
+    "🌌 Osmonga qarash ham ba'zan foydali.",
+    "⭐ Kichik yutuqlarni ham qadrlang.",
+    "💚 O'zingizga ham vaqt ajrating.",
+    "👀 O'zingizga oxirgi marta qachon e'tibor berdingiz?",
+    "🫡 Bugungi vazifa: taslim bo'lmaslik.",
+    "🧭 Yo'l yo'q bo'lsa, o'zingiz yo'l oching.",
+    "🏃 Oldinga qarang, lekin xatolardan saboq oling.",
+    "🕒 Vaqt o'tmoqda. Uni bekorga sarflamang.",
+    "📈 Bugun kechagidan bir qadam oldinda bo'ling.",
+    "📉 Hammasi pasayishi mumkin, lekin yana ko'tariladi.",
+    "🎲 Hayotda hamma narsa oldindan rejalashtirilmaydi.",
+    "🧪 Sinab ko'rmasangiz, natijani bilmaysiz.",
+    "🔬 Qiziqish — bilimning boshlanishi.",
+    "📖 Bir sahifa ham bir qadam.",
+    "✏️ Xatoni o'chirish oson, undan saboq olish qiyin.",
+    "🧠 Bilmagan narsangizni so'rashdan uyalmang.",
+    "🤖 Bot ishlayapti. Siz-chi? 😏",
+    "⚙️ Tizim ishlashi uchun kichik detallar ham kerak.",
+    "🔌 Tok bor ekan, kompyuter ham bor.",
+    "💻 Kompyuterga buyruq bering, lekin aniq bering.",
+    "⌛ Kutish ham ba'zan jarayonning bir qismi.",
+    "🔄 Qayta urinib ko'rish — mag'lubiyat emas.",
+    "🗃️ Fayllaringizni tartibga solib qo'ydingizmi?",
+    "🧹 Desktopingizda nechta keraksiz fayl bor? 😂",
+    "📂 `final_final_2_REAL.py` degan fayl bo'lmasin.",
+    "🐍 Python ham bugun ishlashga tayyor.",
+    "🌐 Saytingiz bugun internetga chiqishga tayyormi?",
+    "💻 Kod ishlasa — tegmang. 😂",
+    "🧑‍💻 Dasturchining eng katta dushmani: bitta nuqta.",
+    "🔴 Qizil xato chiqsa, vahima qilmang.",
+    "🟢 Yashil bo'lsa, demak yaxshi ketmoqda.",
+    "🟡 Sariq ogohlantirishni ham e'tiborsiz qoldirmang.",
+    "🐞 Bug yashirinadi, lekin baribir topiladi.",
+    "🧩 Kod ham puzzle'ga o'xshaydi.",
+    "📦 Har bir package o'z vazifasini bajaradi.",
+    "🚪 Ba'zi xatolar eshikni yopadi, boshqalari yangi eshik ochadi.",
+    "🔐 Parollaringizni ehtiyot qiling.",
+    "🛡️ Xavfsizlikni keyinga qoldirmang.",
+    "🌍 Internet kichkina ekran ichidagi katta dunyo.",
+    "📡 Signal bor. G'oya ham bor.",
+    "📱 Telefonni bir daqiqaga chetga qo'yib ko'ring.",
+    "🎧 Musiqa + kod = fokus rejimi.",
+    "🎵 Bugun qaysi qo'shiq miyangizda aylanmoqda?",
+    "🎨 Kod ham ijodning bir turi.",
+    "🖌️ Dizayn chiroyli bo'lsa, foydalanuvchi xursand.",
+    "🧱 Har bir katta loyiha minglab kichik qismlardan iborat.",
+    "🏗️ Qurayotgan narsangizga poydevor qo'ying.",
+    "🚧 Hali tugamagan loyiha — muvaffaqiyatsizlik emas.",
+    "🔨 Ishni boshlash — eng qiyin qism.",
+    "🏁 Boshlagan narsangizni tugatishga harakat qiling.",
+    "🌟 Bugun sizda ham yangi rekord bo'lishi mumkin.",
+    "🔥 Energiya bor ekan, foydalaning.",
+    "💪 Kuch kichik harakatlardan yig'iladi.",
+    "🫶 O'zingizga qattiq tanqidchi bo'lmang.",
+    "🙂 Bir oz dam olish ham kerak.",
+    "😴 Uyquni ham unutib qo'ymang.",
+    "🍕 Pitsa kodni kompilyatsiya qilmaydi, afsus. 😂",
+    "🍔 Burger ham bugni tuzatmaydi.",
+    "☕ Choy sovib qolmasin.",
+    "🐱 Mushuk yana klaviaturaga chiqmasin.",
+    "🐶 It ham bugun yaxshi kayfiyatda.",
+    "😂 Agar ishlamasa, kompyuterni ayblashdan oldin kodni tekshiring.",
+    "👀 Hech kim ko'rmayapti deb o'ylamang, bot ko'rib turibdi.",
+    "🤖 Men hammasini ko'rmayman, lekin loglar ko'radi. 😂",
+    "📜 Eski kodni o'qish — tarixiy tadqiqot.",
+    "🏛️ Eski kod ba'zan yangi muammolarning ajdodi bo'ladi.",
+    "🧙 Bir kuni yozgan kodingiz o'zingizga sehrdek tuyuladi.",
+    "⚡ Tezlik yaxshi, to'g'rilik undan yaxshi.",
+    "🎯 Avval ishlasin, keyin mukammallashtiring.",
+    "🔧 Mukammallikni kutib o'tirmang.",
+    "🌱 Bugun ekilgan g'oya ertaga loyiha bo'lishi mumkin.",
+    "🚀 Never Give Up — eski, lekin hali ham ishlaydigan qoida."
 ]
 
 
@@ -223,7 +349,8 @@ async def help_command(message: types.Message):
         "🏆 /top — TOP 10 odam qo'shganlar\n"
         "👥 /count — nechta odam qo'shganingizni ko'rish\n"
         "🎁 /danat — donate qilish\n"
-        "📺 /channels — Criperman kanallari\n"
+        "📺 /channels — guruhga mos kanallar\n"
+        "🌟 /text — random splash text\n"
         "🆔 /id — Telegram ID\n"
         "📊 /stats — guruh statistikasi\n"
         "ℹ️ /info — bot haqida\n"
@@ -239,9 +366,19 @@ async def help_command(message: types.Message):
 @dp.message(Command("id"))
 async def id_command(message: types.Message):
 
+    answer_text = (
+        "🆔 Sizning Telegram ID'ingiz:\n"
+        f"<code>{message.from_user.id}</code>"
+    )
+
+    if message.chat.type in ("group", "supergroup", "channel"):
+        answer_text += (
+            "\n\n💬 Guruh/kanal ID:\n"
+            f"<code>{message.chat.id}</code>"
+        )
+
     await message.answer(
-        f"🆔 Sizning Telegram ID'ingiz:\n"
-        f"<code>{message.from_user.id}</code>",
+        answer_text,
         parse_mode="HTML"
     )
 
@@ -268,9 +405,26 @@ async def danat_command(message: types.Message):
 @dp.message(Command("channels"))
 async def channels_command(message: types.Message):
 
+    username = message.chat.username
+
+    if not username:
+        await message.answer(
+            "❌ Bu guruhda public username mavjud emas."
+        )
+        return
+
+    chat_username = f"@{username}"
+    channels = GROUP_CHANNELS.get(chat_username)
+
+    if not channels:
+        await message.answer(
+            "📺 Bu guruh uchun hali kanallar sozlanmagan."
+        )
+        return
+
     await message.answer(
-        "📺 <b>Criperman kanallari:</b>\n\n"
-        + "\n".join(MY_CHANNELS),
+        "📺 <b>Bizning kanallarimiz:</b>\n\n"
+        + "\n".join(channels),
         parse_mode="HTML",
         disable_web_page_preview=True
     )
@@ -642,6 +796,21 @@ async def count_command(message: types.Message):
 
 
 # =========================================================
+# RANDOM TEXT
+# =========================================================
+
+@dp.message(Command("text"))
+async def text_command(message: types.Message):
+
+    text = random.choice(SPLASH_TEXTS)
+
+    await message.answer(
+        f"🌟 <b>Random Splash Text:</b>\n\n{text}",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
 # STATS
 # =========================================================
 
@@ -699,7 +868,7 @@ async def info_command(message: types.Message):
 
 
 # =========================================================
-# SALOM + BAD WORD FILTER
+# SALOM
 # =========================================================
 
 @dp.message(F.text)
@@ -707,8 +876,7 @@ async def chat_listener(message: types.Message):
 
     text = message.text.lower()
 
-    # Avval taqiqlangan so'zlarni tekshirish.
-    # Adminlar ham bundan mustasno emas.
+    # Taqiqlangan so'zlarni tekshirish
     clean_text = normalize(text)
 
     for word in BAD_WORDS:
@@ -718,29 +886,49 @@ async def chat_listener(message: types.Message):
         if word in text or clean_word in clean_text:
 
             try:
-
                 await message.delete()
 
                 await message.answer(
-                    "🚫 Bu guruhda bunday so'z "
-                    "taqiqlangan!",
-                    parse_mode="HTML"
+                    "🚫 Bu guruhda bunday kontent taqiqlangan!"
                 )
 
             except Exception as e:
-
                 logging.error(
                     f"Message delete xatosi: {e}"
                 )
 
             return
 
-    # Salom funksiyasi adminlarda ham ishlaydi
+    # =====================================================
+    # SALOM → GURUH OWNER
+    # =====================================================
+
     if "salom" in text:
 
+        owner_name = "Owner"
+
+        try:
+            admins = await message.chat.get_administrators()
+
+            for admin in admins:
+
+                if admin.status == "creator":
+
+                    if admin.user.username:
+                        owner_name = f"@{admin.user.username}"
+                    else:
+                        owner_name = admin.user.full_name
+
+                    break
+
+        except Exception as e:
+            logging.error(
+                f"Ownerni aniqlashda xato: {e}"
+            )
+
         await message.reply(
-            "👀 <b>Criperman sizni doim eshitadi, "
-            "bemalol gapiravering!</b> 💻😎",
+            f"👀 <b>{owner_name} sizni doim eshitadi, "
+            f"bemalol gapiravering!</b> 💻😎",
             parse_mode="HTML"
         )
 
@@ -784,14 +972,32 @@ async def daily_scheduler():
                             parse_mode="HTML"
                         )
 
-                        # Reklama
-                        await bot.send_message(
-                            chat_id,
-                            "📺 <b>Criperman kanallari:</b>\n\n"
-                            + "\n".join(MY_CHANNELS),
-                            parse_mode="HTML",
-                            disable_web_page_preview=True
-                        )
+                        try:
+                            chat = await bot.get_chat(chat_id)
+                            username = chat.username
+                        except Exception as e:
+                            username = None
+                            logging.warning(
+                                f"Guruh ma'lumotini olishda xato: {group_id} - {e}"
+                            )
+
+                        if username:
+                            channels = GROUP_CHANNELS.get(f"@{username}")
+                        else:
+                            channels = None
+
+                        if channels:
+                            await bot.send_message(
+                                chat_id,
+                                "📺 <b>Bizning kanallarimiz:</b>\n\n"
+                                + "\n".join(channels),
+                                parse_mode="HTML",
+                                disable_web_page_preview=True
+                            )
+                        else:
+                            logging.warning(
+                                f"Reklama uchun kanal konfiguratsiyasi topilmadi: {group_id}"
+                            )
 
                     except Exception as e:
 

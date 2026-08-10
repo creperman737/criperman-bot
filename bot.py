@@ -4,6 +4,7 @@ import os
 import random
 import sqlite3
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
@@ -22,17 +23,19 @@ dp = Dispatcher()
 
 logging.basicConfig(level=logging.INFO)
 
-# Shu yerga guruh username yoki ID yoz
-GROUP_ID = "@criperman_chat"
+# O'zbekiston vaqti
+UZ_TZ = ZoneInfo("Asia/Tashkent")
 
 DB_NAME = "criperman_bot.db"
 
+# Donate linking
+DONATE_LINK = "SENING_DONATE_LINKING"
 
 # =========================================================
 # DATABASE
 # =========================================================
 
-db = sqlite3.connect(DB_NAME)
+db = sqlite3.connect(DB_NAME, check_same_thread=False)
 cursor = db.cursor()
 
 cursor.execute("""
@@ -54,6 +57,15 @@ CREATE TABLE IF NOT EXISTS invites (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS groups (
     chat_id TEXT PRIMARY KEY
+)
+""")
+
+# Birthday dublikatlarini oldini olish
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS birthday_sent (
+    user_id INTEGER,
+    year INTEGER,
+    PRIMARY KEY (user_id, year)
 )
 """)
 
@@ -141,19 +153,6 @@ BAD_WORDS = [
 # HELPERS
 # =========================================================
 
-def is_admin(message: types.Message) -> bool:
-    member = asyncio.run_coroutine_threadsafe(
-        message.chat.get_member(message.from_user.id),
-        asyncio.get_running_loop()
-    )
-
-    try:
-        result = member.result()
-        return result.status in ("administrator", "creator")
-    except Exception:
-        return False
-
-
 def save_group(chat_id):
     cursor.execute(
         "INSERT OR IGNORE INTO groups(chat_id) VALUES (?)",
@@ -173,12 +172,18 @@ def normalize(text):
     )
 
 
+def get_saved_groups():
+    cursor.execute("SELECT chat_id FROM groups")
+    return [row[0] for row in cursor.fetchall()]
+
+
 # =========================================================
 # START
 # =========================================================
 
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
+
     save_group(message.chat.id)
 
     await message.answer(
@@ -187,10 +192,79 @@ async def start_command(message: types.Message):
         "🎂 Birthday\n"
         "🏆 /top\n"
         "👥 /count\n"
-        "🎮 Minecraft\n"
-        "📺 YouTube\n\n"
-        "ℹ️ /info",
+        "🎁 /danat\n"
+        "ℹ️ /info\n"
+        "📖 /help\n\n"
+        "💚 Never Give Up!",
         parse_mode="HTML"
+    )
+
+
+# =========================================================
+# HELP
+# =========================================================
+
+@dp.message(Command("help"))
+async def help_command(message: types.Message):
+
+    await message.answer(
+        "📖 <b>Criperman Bot buyruqlari</b>\n\n"
+        "🎂 /birthday 15.08 — tug'ilgan kunni saqlash\n"
+        "🎈 /mybirthday — tug'ilgan kuningizni ko'rish\n"
+        "🗑️ /delbirthday — tug'ilgan kunni o'chirish\n"
+        "🏆 /top — TOP 10 odam qo'shganlar\n"
+        "👥 /count — nechta odam qo'shganingizni ko'rish\n"
+        "🎁 /danat — donate qilish\n"
+        "📺 /channels — Criperman kanallari\n"
+        "🆔 /id — Telegram ID\n"
+        "📊 /stats — guruh statistikasi\n"
+        "ℹ️ /info — bot haqida\n"
+        "📖 /help — buyruqlar ro'yxati",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# ID
+# =========================================================
+
+@dp.message(Command("id"))
+async def id_command(message: types.Message):
+
+    await message.answer(
+        f"🆔 Sizning Telegram ID'ingiz:\n"
+        f"<code>{message.from_user.id}</code>",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# DONATE
+# =========================================================
+
+@dp.message(Command("danat"))
+async def danat_command(message: types.Message):
+
+    await message.answer(
+        "💸 <b>Criperman'ni qo'llab-quvvatlash!</b>\n\n"
+        "🎁 Agar xohlasangiz, donate yuborishingiz mumkin.\n\n"
+        f"👉 <a href=\"{DONATE_LINK}\">💰 Donate qilish</a>",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# CHANNELS
+# =========================================================
+
+@dp.message(Command("channels"))
+async def channels_command(message: types.Message):
+
+    await message.answer(
+        "📺 <b>Criperman kanallari:</b>\n\n"
+        + "\n".join(MY_CHANNELS),
+        parse_mode="HTML",
+        disable_web_page_preview=True
     )
 
 
@@ -205,9 +279,11 @@ async def welcome_new_members(message: types.Message):
 
     for member in message.new_chat_members:
 
+        # Begona bot
         if member.is_bot:
-            # Begona botni chiqarish
+
             if member.id != bot.id:
+
                 try:
                     await bot.ban_chat_member(
                         message.chat.id,
@@ -220,7 +296,9 @@ async def welcome_new_members(message: types.Message):
                     )
 
                 except Exception as e:
-                    logging.error(f"Botni chiqarishda xato: {e}")
+                    logging.error(
+                        f"Botni chiqarishda xato: {e}"
+                    )
 
             continue
 
@@ -270,7 +348,7 @@ async def welcome_new_members(message: types.Message):
 
 
 # =========================================================
-# BIRTHDAY
+# BIRTHDAY SET
 # =========================================================
 
 @dp.message(Command("birthday"))
@@ -279,23 +357,28 @@ async def birthday_command(message: types.Message):
     args = message.text.split()
 
     if len(args) != 2:
+
         await message.answer(
             "🎂 Tug'ilgan kuningizni kiriting:\n\n"
             "<code>/birthday 15.08</code>",
             parse_mode="HTML"
         )
+
         return
 
     birthday = args[1]
 
     try:
         datetime.strptime(birthday, "%d.%m")
+
     except ValueError:
+
         await message.answer(
             "❌ Format noto'g'ri!\n"
             "Masalan: <code>/birthday 15.08</code>",
             parse_mode="HTML"
         )
+
         return
 
     user = message.from_user
@@ -313,9 +396,61 @@ async def birthday_command(message: types.Message):
     db.commit()
 
     await message.answer(
-        f"🎂 Tug'ilgan kuningiz <b>{birthday}</b> sifatida saqlandi!\n"
-        f"Bot o'sha kuni sizni tabriklaydi 🎉",
+        f"🎂 Tug'ilgan kuningiz "
+        f"<b>{birthday}</b> sifatida saqlandi!\n\n"
+        f"🎉 Bot o'sha kuni sizni tabriklaydi!",
         parse_mode="HTML"
+    )
+
+
+# =========================================================
+# MY BIRTHDAY
+# =========================================================
+
+@dp.message(Command("mybirthday"))
+async def mybirthday_command(message: types.Message):
+
+    cursor.execute(
+        "SELECT birthday FROM birthdays WHERE user_id=?",
+        (message.from_user.id,)
+    )
+
+    row = cursor.fetchone()
+
+    if not row:
+
+        await message.answer(
+            "🎂 Siz hali tug'ilgan kuningizni saqlamagansiz.\n\n"
+            "Masalan:\n"
+            "<code>/birthday 15.08 yani kun.oy</code>",
+            parse_mode="HTML"
+        )
+
+        return
+
+    await message.answer(
+        f"🎂 Sizning tug'ilgan kuningiz: "
+        f"<b>{row[0]}</b>",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# DELETE BIRTHDAY
+# =========================================================
+
+@dp.message(Command("delbirthday"))
+async def delbirthday_command(message: types.Message):
+
+    cursor.execute(
+        "DELETE FROM birthdays WHERE user_id=?",
+        (message.from_user.id,)
+    )
+
+    db.commit()
+
+    await message.answer(
+        "🗑️ Tug'ilgan kuningiz botdan o'chirildi."
     )
 
 
@@ -325,48 +460,104 @@ async def birthday_command(message: types.Message):
 
 async def birthday_checker():
 
+    last_checked_date = None
+
     while True:
 
-        today = datetime.now().strftime("%d.%m")
+        now = datetime.now(UZ_TZ)
+        today = now.strftime("%d.%m")
 
-        cursor.execute("""
-            SELECT user_id, username
-            FROM birthdays
-            WHERE birthday=?
-        """, (today,))
+        # Bir kun ichida qayta tekshirib yubormaslik
+        if today != last_checked_date:
 
-        birthdays = cursor.fetchall()
+            cursor.execute("""
+                SELECT user_id, username, birthday
+                FROM birthdays
+                WHERE birthday=?
+            """, (today,))
 
-        for user_id, username in birthdays:
+            birthdays = cursor.fetchall()
 
-            try:
+            for user_id, username, birthday in birthdays:
 
-                mention = f"@{username}" if username else "🎉 Tug'ilgan kun egasi"
+                current_year = now.year
 
-                text = (
-                    f"🎉🎂 <b>HAPPY BIRTHDAY!</b> 🎂🎉\n\n"
-                    f"🥳 {mention}\n\n"
-                    f"🎈 Tug'ilgan kuningiz muborak bo'lsin!\n"
-                    f"🎉 Happy Birthday to You!\n"
-                    f"🇯🇵 お誕生日おめでとう！\n"
-                    f"🇷🇺 С днём рождения!\n\n"
-                    f"💚 Sizga baxt, omad va katta zafarlar tilaymiz!\n"
-                    f"🚀 Never Give Up!"
-                )
+                # Shu yil tabriklanganmi?
+                cursor.execute("""
+                    SELECT 1
+                    FROM birthday_sent
+                    WHERE user_id=? AND year=?
+                """, (
+                    user_id,
+                    current_year
+                ))
 
-                await bot.send_message(
-                    GROUP_ID,
-                    text,
-                    parse_mode="HTML"
-                )
+                already_sent = cursor.fetchone()
 
-            except Exception as e:
-                logging.error(
-                    f"Birthday xatosi: {e}"
-                )
+                if already_sent:
+                    continue
 
-        # Keyingi tekshiruv 1 soatdan keyin
-        await asyncio.sleep(3600)
+                try:
+
+                    if username and not username.startswith("@"):
+                        mention = f"@{username}"
+                    elif username:
+                        mention = username
+                    else:
+                        mention = "🎉 Tug'ilgan kun egasi"
+
+                    text = (
+                        f"🎉🎂 <b>HAPPY BIRTHDAY!</b> 🎂🎉\n\n"
+                        f"🥳 {mention}\n\n"
+                        f"🎈 Tug'ilgan kuningiz muborak bo'lsin!\n"
+                        f"🇬🇧 Happy Birthday to You!\n"
+                        f"🇯🇵 お誕生日おめでとう！\n"
+                        f"🇷🇺 С днём рождения!\n\n"
+                        f"💚 Sizga baxt, omad va katta zafarlar tilaymiz!\n"
+                        f"🚀 Never Give Up!"
+                    )
+
+                    # Barcha saqlangan guruhlarga yuborish
+                    groups = get_saved_groups()
+
+                    for group_id in groups:
+
+                        try:
+
+                            await bot.send_message(
+                                int(group_id),
+                                text,
+                                parse_mode="HTML"
+                            )
+
+                        except Exception as e:
+
+                            logging.error(
+                                f"Birthday {group_id} xatosi: {e}"
+                            )
+
+                    # Tabrik yuborildi deb saqlash
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO birthday_sent
+                        (user_id, year)
+                        VALUES (?, ?)
+                    """, (
+                        user_id,
+                        current_year
+                    ))
+
+                    db.commit()
+
+                except Exception as e:
+
+                    logging.error(
+                        f"Birthday xatosi: {e}"
+                    )
+
+            last_checked_date = today
+
+        # Har 1 daqiqada Toshkent vaqtini tekshiradi
+        await asyncio.sleep(60)
 
 
 # =========================================================
@@ -386,18 +577,26 @@ async def top_command(message: types.Message):
     users = cursor.fetchall()
 
     if not users:
+
         await message.answer(
             "🏆 Hali hech kim odam qo'shmagan."
         )
+
         return
 
-    text = "🏆 <b>TOP 10 — ENG KO'P ODAM QO'SHGANLAR</b>\n\n"
+    text = (
+        "🏆 <b>TOP 10 — ENG KO'P ODAM QO'SHGANLAR</b>\n\n"
+    )
 
     medals = ["🥇", "🥈", "🥉"]
 
     for index, (username, count) in enumerate(users, 1):
 
-        medal = medals[index - 1] if index <= 3 else f"{index}."
+        medal = (
+            medals[index - 1]
+            if index <= 3
+            else f"{index}."
+        )
 
         text += (
             f"{medal} {username} — "
@@ -417,11 +616,9 @@ async def top_command(message: types.Message):
 @dp.message(Command("count"))
 async def count_command(message: types.Message):
 
-    user = message.from_user
-
     cursor.execute(
         "SELECT count FROM invites WHERE user_id=?",
-        (user.id,)
+        (message.from_user.id,)
     )
 
     row = cursor.fetchone()
@@ -429,7 +626,42 @@ async def count_command(message: types.Message):
     count = row[0] if row else 0
 
     await message.answer(
-        f"👥 Siz qo'shgan odamlar soni: <b>{count}</b>",
+        f"👥 Siz qo'shgan odamlar soni: "
+        f"<b>{count}</b>",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# STATS
+# =========================================================
+
+@dp.message(Command("stats"))
+async def stats_command(message: types.Message):
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM birthdays"
+    )
+
+    birthday_count = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM invites"
+    )
+
+    invite_users = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM groups"
+    )
+
+    group_count = cursor.fetchone()[0]
+
+    await message.answer(
+        "📊 <b>Criperman Bot statistikasi</b>\n\n"
+        f"👥 Guruhlar: <b>{group_count}</b>\n"
+        f"🎂 Birthday saqlaganlar: <b>{birthday_count}</b>\n"
+        f"🏆 Invite statistikasi: <b>{invite_users}</b>",
         parse_mode="HTML"
     )
 
@@ -443,14 +675,14 @@ async def info_command(message: types.Message):
 
     await message.answer(
         "🤖 <b>Criperman Bot</b>\n\n"
-        "👋 Welcome system\n"
-        "🎂 Birthday system\n"
-        "🏆 TOP system\n"
+        "👋 odam qoshilsa hush kelibsiz deydi\n"
+        "🎂 /birthday 00.00 kun/oy kiritsayiz tugulgan kunda tabriklaydi\n"
+        "🏆 kim ko'p odam qo'shgan top 10ta odamni korsatadi\n"
         "📊 Invite counter\n"
         "🛡 Anti-spam\n"
         "🤖 Anti-bot\n"
         "📺 YouTube\n"
-        "🎮 Minecraft\n\n"
+        "🎁 Donate\n\n"
         "💚 Criperman\n"
         "🚀 Never Give Up!",
         parse_mode="HTML"
@@ -458,7 +690,7 @@ async def info_command(message: types.Message):
 
 
 # =========================================================
-# SALOM
+# SALOM + BAD WORD FILTER
 # =========================================================
 
 @dp.message(F.text)
@@ -466,30 +698,8 @@ async def chat_listener(message: types.Message):
 
     text = message.text.lower()
 
-    # Admin bo'lsa filtrga tushmaydi
-    try:
-
-        member = await message.chat.get_member(
-            message.from_user.id
-        )
-
-        if member.status in ("administrator", "creator"):
-            return
-
-    except Exception:
-        pass
-
-    # Salom
-    if "salom" in text:
-
-        await message.reply(
-            "👀 Criperman sizni doim eshitadi, "
-            "bemalol gapiravering! 💻😎"
-        )
-
-        return
-
-    # Bad words
+    # Avval taqiqlangan so'zlarni tekshirish.
+    # Adminlar ham bundan mustasno emas.
     clean_text = normalize(text)
 
     for word in BAD_WORDS:
@@ -503,53 +713,86 @@ async def chat_listener(message: types.Message):
                 await message.delete()
 
                 await message.answer(
-                    f"🚫 {message.from_user.mention_html()}, "
-                    f"bu guruhda bunday kontent taqiqlangan!",
+                    "🚫 Bu guruhda bunday so'z "
+                    "taqiqlangan!",
                     parse_mode="HTML"
                 )
 
             except Exception as e:
+
                 logging.error(
                     f"Message delete xatosi: {e}"
                 )
 
             return
 
+    # Salom funksiyasi adminlarda ham ishlaydi
+    if "salom" in text:
+
+        await message.reply(
+            "👀 <b>Criperman sizni doim eshitadi, "
+            "bemalol gapiravering!</b> 💻😎",
+            parse_mode="HTML"
+        )
+
+        return
+
 
 # =========================================================
-# 3 KUNLIK MESSAGE
+# DAILY SPLASH + AD
 # =========================================================
 
-async def three_day_scheduler():
+async def daily_scheduler():
+
+    last_sent_date = None
 
     while True:
 
-        await asyncio.sleep(259200)  # 3 kun
+        now = datetime.now(UZ_TZ)
 
-        text = random.choice(SPLASH_TEXTS)
+        # Har kuni soat 20:00
+        if now.hour == 20 and now.minute == 0:
 
-        try:
+            current_date = now.strftime("%Y-%m-%d")
 
-            await bot.send_message(
-                GROUP_ID,
-                f"🌟 <b>Criperman Chat</b>\n\n{text}",
-                parse_mode="HTML"
-            )
+            if current_date != last_sent_date:
 
-            # YouTube tavsiyasi
-            await bot.send_message(
-                GROUP_ID,
-                "📺 <b>Criperman kanallari:</b>\n\n"
-                + "\n".join(MY_CHANNELS),
-                parse_mode="HTML",
-                disable_web_page_preview=True
-            )
+                text = random.choice(SPLASH_TEXTS)
 
-        except Exception as e:
+                groups = get_saved_groups()
 
-            logging.error(
-                f"3 kunlik scheduler xatosi: {e}"
-            )
+                for group_id in groups:
+
+                    try:
+
+                        chat_id = int(group_id)
+
+                        # Splash
+                        await bot.send_message(
+                            chat_id,
+                            f"🌟 <b>Criperman Chat</b>\n\n"
+                            f"{text}",
+                            parse_mode="HTML"
+                        )
+
+                        # Reklama
+                        await bot.send_message(
+                            chat_id,
+                            "📺 <b>Criperman kanallari:</b>\n\n"
+                            + "\n".join(MY_CHANNELS),
+                            parse_mode="HTML",
+                            disable_web_page_preview=True
+                        )
+
+                    except Exception as e:
+
+                        logging.error(
+                            f"Daily scheduler {group_id} xatosi: {e}"
+                        )
+
+                last_sent_date = current_date
+
+        await asyncio.sleep(30)
 
 
 # =========================================================
@@ -563,7 +806,7 @@ async def on_startup():
     )
 
     asyncio.create_task(
-        three_day_scheduler()
+        daily_scheduler()
     )
 
     logging.info(
@@ -577,13 +820,18 @@ async def on_startup():
 
 async def main():
 
-    await on_startup()
+    await bot.delete_webhook(
+        drop_pending_updates=True
+    )
 
-    # Ensure any active webhook is removed so polling (getUpdates) can be used without conflict.
-    await bot.delete_webhook(drop_pending_updates=True)
+    await on_startup()
 
     await dp.start_polling(bot)
 
+
+# =========================================================
+# RUN
+# =========================================================
 
 if __name__ == "__main__":
     asyncio.run(main())

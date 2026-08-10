@@ -145,7 +145,14 @@ BAD_WORDS = [
     ".onion",
     "18+",
     "porno",
-    "sex"
+    "sex",
+    "fock",
+    "f*ck",
+    "f u c k",
+    "f u c k",
+    "kot",
+    "ko't",
+    "neger"
 ]
 
 

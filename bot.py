@@ -152,7 +152,8 @@ BAD_WORDS = [
     "f u c k",
     "kot",
     "ko't",
-    "neger"
+    "neger",
+    "시발",
 ]
 
 
@@ -520,6 +521,7 @@ async def birthday_checker():
                         f"🇬🇧 Happy Birthday to You!\n"
                         f"🇯🇵 お誕生日おめでとう！\n"
                         f"🇷🇺 С днём рождения!\n\n"
+                        f"🇰🇷 생일 축하합니다!\n"
                         f"💚 Sizga baxt, omad va katta zafarlar tilaymiz!\n"
                         f"🚀 Never Give Up!"
                     )

@@ -732,6 +732,7 @@ SPLASH_TEXTS = [
 
 BAD_WORDS = [
     "ahmoq",
+    "zb",
     "axmoq",
     "dalbayob",
     "dapa",

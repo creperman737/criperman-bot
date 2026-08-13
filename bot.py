@@ -744,6 +744,8 @@ SPLASH_TEXTS = [
 "🗣️ NIIIMAGAAAAP?!",
 "🗣️ SIX SEVEN!",
 "Mam: Men senga necha marta aytdim?",
+"Mam: sen odam bo'laysan kuchuk",
+"Mam: sendan kora it baqsam yaxshi edi",
 "Mam: Qachon odam bo'lasan?",
 "Mam: Telefonni qo'y!",
 "Mam: Telefoningdan bosh ko'tarmaysan.",

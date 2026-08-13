@@ -864,6 +864,56 @@ SPLASH_TEXTS = [
 # BAD WORDS
 # =========================================================
 
+SAVOLLAR = [
+    "⚖️ Adolat hamma uchun bir xil bo'lishi kerakmi yoki har bir odamning holatiga qarab o'zgarishi kerakmi?",
+    "🕵️ Haqiqatni bilish biror odamga zarar yetkazsa ham, uni aytish kerakmi?",
+    "🧠 Agar sening barcha xotiralaring o'chirilib, aynan sening tanangga boshqa xotiralar yozilsa — u odam hali ham senmisan?",
+    "🔄 Kecha qilgan xatongni o'zgartirsang, bugungi 'sen' ham o'zgaradimi?",
+    "⚖️ Bir begunoh odamni jazolab, minglab odamni qutqarish mumkin bo'lsa, bu adolatmi?",
+    "🗿 Hech kim bilmaydigan yaxshilikni qilishning qiymati bormi?",
+    "🎭 Odam yaxshi ishni faqat boshqalar uni yaxshi deb o'ylashi uchun qilsa, u baribir yaxshi odammi?",
+    "🧩 Qonun adolatsiz bo'lsa, qonunni buzish jinoyatmi yoki adolatmi?",
+    "👁️ Hamma odam bir xil voqeani ko'rib, har xil xulosa chiqarsa, 'haqiqat' qaysi biri?",
+    "🕰️ Agar kelajakdagi sen bugungi qaroring noto'g'ri ekanini bilsa, bugungi sen o'z qarorini o'zgartirishi kerakmi?",
+    "🧠 Agar yolg'on bir insonni baxtli qilsa, haqiqat esa uni sindirsa — qaysi birini tanlaysan?",
+    "⚔️ Yomon odamni to'xtatish uchun o'zing ham yomon ish qilishga majbur bo'lsang, chegarani qayerda qo'yasan?",
+    "👤 Agar hech kim seni eslamasa, hayotingdagi qilgan yaxshi ishlaring baribir ma'nolimi?",
+    "♾️ Abadiy yashash imkoniyati berilsa, lekin sevganlaringning hammasi seni tark etib boraversa, uni tanlaysanmi?",
+    "🪞 Odam o'zini boshqalarning ko'zi orqali ko'rmasa, o'zining qanday inson ekanini qayerdan biladi?",
+    "💭 Fikringni o'zing tanlaysanmi yoki seni tarbiyalagan muhit tanlaydimi?",
+    "⚖️ Do'sting nohaq bo'lsa, uni himoya qilish do'stlikmi yoki unga xiyonatmi?",
+    "🔥 Maqsad yaxshi bo'lsa, unga erishish uchun har qanday vositadan foydalanish mumkinmi?",
+    "🧠 Agar barcha qarorlaring miyangdagi jarayonlarning natijasi bo'lsa, 'erkin tanlov' aslida bormi?",
+    "🌌 Agar koinotda insoniyatdan boshqa hech kim bo'lmasa, insoniyatning mavjudligi nimaga kerak?",
+    "🧩 Nega ko'p odamlar yaxshilikni xohlaydi, lekin yomonlikka tezroq yo'l oladi?",
+    "💬 Nega odam ba'zan o'zi bilmagan narsani juda qattiq himoya qiladi?",
+    "🕳️ Agar sening ichki dunyoing bo'sh bo'lsa, nima to'ldiradi?",
+    "🎭 Odamlar o'zlarini 'haqiqiy' deb o'ylashlari uchun qanday narsalarni o'ylashlari kerak?",
+    "🌊 Odamlar bir-birini tushunish uchun nima bilan boshlashlari kerak?",
+    "⚙️ Agar dunyo sizga noto'g'ri bo'lsa, kimning xatosi ko'proq — sizningmi yoki dunyoningmi?",
+    "🧠 Agar miyang sizga yolg'on aytsa, uni qayerdan bilsangiz bo'ladi?",
+    "🔒 Agar sirni saqlash uchun unga hech kimga bildirmaslik kerak bo'lsa, bu o'zingga qanchalik zarar yetkazadi?",
+    "💊 Ba'zan eng kuchli odamlar eng ko'p og'riqni yashiradimi?",
+    "🧬 Agar insoniyat hayotining ma'nosi bo'lsa, kim uni ta'riflaydi?",
+    "📚 Nega ba'zi bilimlar ko'pchilikka ma'lum bo'lsa-da, odamlar ularni ishlatmaydi?",
+    "🕊️ Odam o'zini boshqalar kamsitishini istamaydi, lekin ba'zan qadr-qimmatni ham kamsitadi. Nega?",
+    "🧭 Agar yo'l xato bo'lsa, uni o'zgartirish qanchalik jasorat kerak?",
+    "🪐 Odamlar nega doim kosmosni kuzatishadi, lekin o'zlarining ichki dunyosini unutasalar?",
+    "🌌 Agar koinotning ma'nosi bo'lsa, uni odam yaratadimi yoki topadi?",
+    "⚖️ Odamning adolati uning kuchiga emas, uning imtihonlariga bog'liqmi?",
+    "🧠 Agar o'zingni haqiqiy deb his qilmasang, senga kim haqiqiyatni aytadi?",
+    "🧩 Nega ba'zi odamlar kelajak haqida ko'p gapiradi, lekin hozirgi lahzani yashamaydi?",
+    "🛡️ Bosqinchi biror narsaga tahdid solganda, kimni himoya qilish yaxshiroq: himoyachini mi yoki zaifni mi?",
+    "🎲 Hayotda tasodif nima? Odamning tanlovi bilan chiziqlanganmi yoki mustaqilmi?",
+    "💬 Agar o'zingga haqiqat yoqmasa, uni e'tirof qilishning o'zi halokatmi?",
+    "🌧️ Qanday qilib insonlar duygularini yashiradi, lekin ularning ta'siri davom etaveradi?",
+    "🕯️ Agar imon yo'q bo'lsa, yaxshi niyatlar qayerga boradi?",
+    "🧠 Odamni o'zgartiradigan narsa uning xatosi emas, uning o'zi ko'rgan haqiqatmi?",
+    "🏔️ Katta yutuq ba'zan kichik qarordan boshlanadimi?",
+    "🌞 Nega ba'zi odamlar bir marta yaxshi ish qilgach, uni butun hayot uchun mukofot deb qarashadi?",
+    "🧵 Odam o'zini tasvir qilishda qanchalik so'zlardan foydalanadi?"
+]
+
 BAD_WORDS = [
     "ahmoq",
     "zb",
@@ -980,10 +1030,42 @@ async def help_command(message: types.Message):
         "🎁 /danat — donate qilish\n"
         "📺 /channels — guruhga mos kanallar\n"
         "🌟 /text — random splash text\n"
+        "🧠 /savol — random hayot savoli\n"
         "🆔 /id — Telegram ID\n"
         "📊 /stats — guruh statistikasi\n"
         "ℹ️ /info — bot haqida\n"
         "📖 /help — buyruqlar ro'yxati",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# RANDOM TEXT
+# =========================================================
+
+@dp.message(Command("text"))
+async def text_command(message: types.Message):
+
+    text = random.choice(SPLASH_TEXTS)
+
+    await message.answer(
+        f"🌟 <b>Random Splash Text:</b>\n\n{text}",
+        parse_mode="HTML"
+    )
+
+
+# =========================================================
+# RANDOM QUESTION
+# =========================================================
+
+@dp.message(Command("savol"))
+async def savol_command(message: types.Message):
+
+    question = random.choice(SAVOLLAR)
+
+    await message.answer(
+        "🧠 <b>Bugungi savol:</b>\n\n"
+        + question,
         parse_mode="HTML"
     )
 

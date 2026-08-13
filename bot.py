@@ -1722,6 +1722,57 @@ async def daily_scheduler():
 
 
 # =========================================================
+# DAILY WEEKLY MESSAGE
+# =========================================================
+
+async def weekly_day_scheduler():
+
+    last_sent = None
+
+    while True:
+
+        now = datetime.now(UZ_TZ)
+
+        if now.hour == 8 and now.minute == 0:
+
+            weekday_names = {
+                0: ("Dushanba", "🌅 <b>Bugun DUSHANBA!</b>\n\n📅 Yangi hafta boshlandi!\n💚 Sizga yaxshi kayfiyat, omad va muvaffaqiyat tilaymiz!\n🚀 Haftani yaxshi boshlang!\n\n🔥 Never Give Up!"),
+                1: ("Seshanba", "🔥 <b>Bugun SESHANBA!</b>\n\n💪 Haftaning davomiyligini yaxshi yo'lga qo'ying!\n📈 Har bir qadam sizga yaqinlashtiradi.\n🚀 Qolgan ishlaringni ham birma-bir qilib bering!\n\n💚 Never Give Up!"),
+                2: ("Chorshanba", "💻 <b>Bugun CHORSHANBA!</b>\n\n⚡ Haftaning o'rtasi yaqinlashdi.\n📌 Kichik ishlar ham katta natijaga olib keladi.\n🚀 Hozirgi harakatlaringizga ishoning!\n\n💚 Never Give Up!"),
+                3: ("Payshanba", "⚡ <b>Bugun PAYSHANBA!</b>\n\n🔥 Oz qoldi, kuchingizni yutqazmang!\n📈 Bir lahza to'xtab qolmasdan, davom eting.\n💪 Yaxshi natija kichik qadamlar bilan keladi!\n\n💚 Never Give Up!"),
+                4: ("Juma", "🎉 <b>Bugun JUMA!</b>\n\n✨ Haftaning eng yaxshi kuniga yaqinlashingiz kerak.\n💚 O'zingizga ijobiy hissa qoldiring.\n🚀 Qolgan vazifalarni bitiring!\n\n🔥 Never Give Up!"),
+                5: ("Shanba", "😎 <b>Bugun SHANBA!</b>\n\n💤 Dam olish va qayta quvvat olish vaqti keldi.\n🌿 O'zingizga dam bering, lekin maqsadingizni unutmang.\n🚀 Hafta davomida o'zingizga ishontirasiz!\n\n💚 Never Give Up!"),
+                6: ("Yakshanba", "🌙 <b>Bugun YAKSHANBA!</b>\n\n🧠 Yangi hafta oldidan dam oling.\n📅 Rejalaringizni qayta ko'rib chiqing.\n💚 Keyingi haftaga kuchli boshlanish uchun tayyorgarlik ko'ring!\n\n🔥 Never Give Up!"),
+            }
+
+            today_name, message_text = weekday_names.get(now.weekday(), ("Kun", "💚 Never Give Up!"))
+            current = now.strftime("%Y-%m-%d")
+
+            if current != last_sent:
+
+                groups = get_saved_groups()
+
+                for group_id in groups:
+
+                    try:
+                        await bot.send_message(
+                            int(group_id),
+                            f"🌅 <b>Bugun {today_name.upper()}!</b>\n\n"
+                            + message_text,
+                            parse_mode="HTML"
+                        )
+
+                    except Exception as e:
+                        logging.error(
+                            f"Weekly message {group_id} xatosi: {e}"
+                        )
+
+                last_sent = current
+
+        await asyncio.sleep(30)
+
+
+# =========================================================
 # STARTUP
 # =========================================================
 
@@ -1733,6 +1784,10 @@ async def on_startup():
 
     asyncio.create_task(
         daily_scheduler()
+    )
+
+    asyncio.create_task(
+        weekly_day_scheduler()
     )
 
     logging.info(

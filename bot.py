@@ -2,8 +2,10 @@ import asyncio
 import logging
 import os
 import random
+import re
 import sqlite3
 from datetime import datetime
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
@@ -30,6 +32,74 @@ DB_NAME = "criperman_bot.db"
 
 # Donate linking
 DONATE_LINK = "https://idonate.uz/d/deeKARL"
+
+BLOCKED_LINK_NAMES = [
+    "iplogger",
+    "grabify",
+    "2no.co",
+    "blasze",
+    "ipgrabber",
+]
+
+
+def normalize(text: str) -> str:
+    if text is None:
+        return ""
+
+    text = text.lower()
+    text = text.replace("'", "").replace("`", "")
+    return re.sub(r"[^a-z0-9]+", "", text)
+
+
+def normalize_url_fragment(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (value or "").lower())
+
+
+def extract_urls(text: str):
+    if not text:
+        return []
+
+    return re.findall(r"https?://[^\s<>'\"`]+", text, flags=re.IGNORECASE)
+
+
+def is_blocked_link(url: str) -> bool:
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return False
+
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return False
+
+    host = (parsed.hostname or "").lower().replace("www.", "")
+    path = (parsed.path or "").lower()
+    url_text = f"{host} {path}"
+
+    for blocked_name in BLOCKED_LINK_NAMES:
+        blocked_key = normalize_url_fragment(blocked_name)
+
+        if not blocked_key:
+            continue
+
+        if (
+            blocked_key in normalize_url_fragment(host)
+            or blocked_key in normalize_url_fragment(path)
+            or blocked_key in normalize_url_fragment(url_text)
+        ):
+            return True
+
+    return False
+
+
+def has_blocked_link(text: str) -> bool:
+    if not text:
+        return False
+
+    for url in extract_urls(text):
+        if is_blocked_link(url):
+            return True
+
+    return False
 
 # =========================================================
 # DATABASE
@@ -1586,6 +1656,23 @@ async def info_command(message: types.Message):
 async def chat_listener(message: types.Message):
 
     text = message.text.lower()
+
+    # Taqiqlangan linklarni tekshirish
+    if has_blocked_link(message.text):
+
+        try:
+            await message.delete()
+
+            await message.answer(
+                "🚫 Bu guruhda taqiqlangan link mavjud!"
+            )
+
+        except Exception as e:
+            logging.error(
+                f"Blocked link delete xatosi: {e}"
+            )
+
+        return
 
     # Taqiqlangan so'zlarni tekshirish
     clean_text = normalize(text)

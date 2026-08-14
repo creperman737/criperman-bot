@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criperman Bot — Admin Panel</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b0f0d;
+    color: #fff;
+}
+
+header {
+    padding: 25px;
+    background: #111814;
+    border-bottom: 1px solid #26352b;
+}
+
+header h1 {
+    margin: 0;
+    color: #5cff88;
+}
+
+header p {
+    margin: 7px 0 0;
+    color: #9aa69d;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 25px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #111814;
+    border: 1px solid #26352b;
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 12px;
+    margin: 7px 0;
+    background: #0b0f0d;
+    color: white;
+    border: 1px solid #334439;
+    border-radius: 9px;
+    outline: none;
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #5cff88;
+}
+
+button {
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add {
+    width: 100%;
+    background: #5cff88;
+    color: #07100a;
+}
+
+.add:hover {
+    background: #42e873;
+}
+
+.list {
+    margin-top: 15px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-top: 8px;
+    background: #0b0f0d;
+    border: 1px solid #26352b;
+    border-radius: 9px;
+    word-break: break-word;
+}
+
+.delete {
+    flex-shrink: 0;
+    background: #ff4d5e;
+    color: white;
+}
+
+.delete:hover {
+    background: #ff263b;
+}
+
+.day-box {
+    margin-top: 12px;
+}
+
+.empty {
+    color: #68756d;
+    text-align: center;
+    padding: 10px;
+}
+
+.danger {
+    border-color: #633038;
+}
+
+.question-answer {
+    margin-top: 8px;
+}
+
+.footer {
+    text-align: center;
+    color: #68756d;
+    padding: 30px;
+}
+
+@media(max-width:600px) {
+    .container {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚡ Criperman Bot</h1>
+    <p>Admin Panel — ma'lumotlarni oson boshqarish</p>
+</header>
+
+<div class="container">
+
+<div class="grid">
+
+<!-- BAD WORDS -->
+<div class="card danger">
+    <h2>🚫 Yomon so‘zlar</h2>
+
+    <input id="badWordInput"
+           placeholder="Masalan: baka">
+
+    <button class="add" onclick="addBadWord()">
+        + Qo‘shish
+    </button>
+
+    <div id="badWordsList" class="list"></div>
+</div>
+
+
+<!-- DANGEROUS LINKS -->
+<div class="card danger">
+    <h2>🔗 Xavfli linklar</h2>
+
+    <input id="dangerLinkInput"
+           placeholder="Masalan: iplogger">
+
+    <button class="add" onclick="addDangerLink()">
+        + Qo‘shish
+    </button>
+
+    <div id="dangerLinksList" class="list"></div>
+</div>
+
+
+<!-- SPLASH TEXT -->
+<div class="card">
+    <h2>✨ Splash text</h2>
+
+    <textarea id="splashInput"
+              placeholder="Masalan: Never Give Up!"></textarea>
+
+    <button class="add" onclick="addSplash()">
+        + Qo‘shish
+    </button>
+
+    <div id="splashList" class="list"></div>
+</div>
+
+
+<!-- QUESTIONS -->
+<div class="card">
+    <h2>❓ Savollar</h2>
+
+    <input id="questionInput"
+           placeholder="Savol">
+
+    <textarea id="answerInput"
+              placeholder="Javob"></textarea>
+
+    <button class="add" onclick="addQuestion()">
+        + Qo‘shish
+    </button>
+
+    <div id="questionsList" class="list"></div>
+</div>
+
+</div>
+
+
+<!-- WEEK DAYS -->
+
+<div class="card" style="margin-top:20px">
+
+<h2>📅 Haftalik tilaklar</h2>
+
+<div class="day-box">
+    <label>🌅 Dushanba</label>
+    <textarea id="monday"
+        placeholder="Dushanba tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>🌤️ Seshanba</label>
+    <textarea id="tuesday"
+        placeholder="Seshanba tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>☀️ Chorshanba</label>
+    <textarea id="wednesday"
+        placeholder="Chorshanba tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>🌿 Payshanba</label>
+    <textarea id="thursday"
+        placeholder="Payshanba tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>🌙 Juma</label>
+    <textarea id="friday"
+        placeholder="Juma tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>😎 Shanba</label>
+    <textarea id="saturday"
+        placeholder="Shanba tilagi..."></textarea>
+</div>
+
+<div class="day-box">
+    <label>🌅 Yakshanba</label>
+    <textarea id="sunday"
+        placeholder="Yakshanba tilagi..."></textarea>
+</div>
+
+<button class="add" onclick="saveDays()">
+    💾 Haftalik tilaklarni saqlash
+</button>
+
+</div>
+
+</div>
+
+<div class="footer">
+    Criperman Bot ⚡ Never Give Up!
+</div>
+
+
+<script>
+
+const data = JSON.parse(
+    localStorage.getItem("cripermanBotData")
+) || {
+    badWords: [],
+    dangerLinks: [],
+    splashes: [],
+    questions: [],
+    days: {}
+};
+
+
+function save() {
+    localStorage.setItem(
+        "cripermanBotData",
+        JSON.stringify(data)
+    );
+}
+
+
+/* BAD WORDS */
+
+function addBadWord() {
+
+    const input = document.getElementById("badWordInput");
+    const value = input.value.trim();
+
+    if (!value) return;
+
+    data.badWords.push(value);
+
+    input.value = "";
+
+    save();
+    render();
+}
+
+
+/* DANGEROUS LINKS */
+
+function addDangerLink() {
+
+    const input =
+        document.getElementById("dangerLinkInput");
+
+    const value = input.value.trim();
+
+    if (!value) return;
+
+    data.dangerLinks.push(value);
+
+    input.value = "";
+
+    save();
+    render();
+}
+
+
+/* SPLASH */
+
+function addSplash() {
+
+    const input =
+        document.getElementById("splashInput");
+
+    const value = input.value.trim();
+
+    if (!value) return;
+
+    data.splashes.push(value);
+
+    input.value = "";
+
+    save();
+    render();
+}
+
+
+/* QUESTIONS */
+
+function addQuestion() {
+
+    const question =
+        document.getElementById("questionInput");
+
+    const answer =
+        document.getElementById("answerInput");
+
+    if (!question.value.trim()) return;
+
+    data.questions.push({
+        question: question.value.trim(),
+        answer: answer.value.trim()
+    });
+
+    question.value = "";
+    answer.value = "";
+
+    save();
+    render();
+}
+
+
+/* DAYS */
+
+function saveDays() {
+
+    const days = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+    ];
+
+    days.forEach(day => {
+
+        data.days[day] =
+            document.getElementById(day).value;
+
+    });
+
+    save();
+
+    alert("✅ Haftalik tilaklar saqlandi!");
+}
+
+
+/* DELETE */
+
+function deleteItem(type, index) {
+
+    data[type].splice(index, 1);
+
+    save();
+    render();
+}
+
+
+/* RENDER */
+
+function render() {
+
+    renderArray(
+        "badWordsList",
+        data.badWords,
+        "badWords"
+    );
+
+    renderArray(
+        "dangerLinksList",
+        data.dangerLinks,
+        "dangerLinks"
+    );
+
+    renderArray(
+        "splashList",
+        data.splashes,
+        "splashes"
+    );
+
+    renderQuestions();
+
+    loadDays();
+}
+
+
+function renderArray(id, array, type) {
+
+    const container =
+        document.getElementById(id);
+
+    if (!array.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                Hozircha hech narsa yo‘q
+             </div>`;
+
+        return;
+    }
+
+    container.innerHTML =
+        array.map((item, index) => `
+            <div class="item">
+                <span>${escapeHTML(item)}</span>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('${type}', ${index})">
+                    🗑
+                </button>
+            </div>
+        `).join("");
+}
+
+
+function renderQuestions() {
+
+    const container =
+        document.getElementById("questionsList");
+
+    if (!data.questions.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                Hozircha savol yo‘q
+             </div>`;
+
+        return;
+    }
+
+    container.innerHTML =
+        data.questions.map((item, index) => `
+            <div class="item">
+
+                <div>
+                    <b>${escapeHTML(item.question)}</b>
+
+                    ${
+                        item.answer
+                        ? `<div class="question-answer">
+                            ${escapeHTML(item.answer)}
+                           </div>`
+                        : ""
+                    }
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('questions', ${index})">
+                    🗑
+                </button>
+
+            </div>
+        `).join("");
+}
+
+
+/* LOAD DAYS */
+
+function loadDays() {
+
+    const days = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+    ];
+
+    days.forEach(day => {
+
+        document.getElementById(day).value =
+            data.days[day] || "";
+
+    });
+}
+
+
+/* SECURITY */
+
+function escapeHTML(text) {
+
+    return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* START */
+
+render();
+
+</script>
+
+</body>
+</html>

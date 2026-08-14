@@ -306,30 +306,86 @@ const data = JSON.parse(
     days: {}
 };
 
+const BAD_WORDS_API = "http://127.0.0.1:8080";
+const ADMIN_TOKEN = "change-me";
 
 function save() {
-    localStorage.setItem(
-        "cripermanBotData",
-        JSON.stringify(data)
-    );
+localStorage.setItem(
+    "cripermanBotData",
+    JSON.stringify(data)
+);
 }
 
+async function requestBadWordsAPI(path, method = "GET", payload = null) {
+const options = {
+    method,
+    headers: {
+        "Content-Type": "application/json"
+    }
+};
+
+if (payload) {
+    options.body = JSON.stringify(payload);
+}
+
+const response = await fetch(`${BAD_WORDS_API}${path}`, options);
+
+if (!response.ok) {
+    throw new Error(`API xato: ${response.status}`)
+}
+
+return response.json();
+}
+
+async function syncBadWordsFromServer() {
+try {
+    const result = await requestBadWordsAPI("/badwords/list");
+    if (Array.isArray(result.words) && result.words.length) {
+        data.badWords = result.words;
+        save();
+        render();
+    }
+} catch (error) {
+    console.warn("Bad words serverga ulanib bo'lmadi:", error.message);
+}
+}
 
 /* BAD WORDS */
 
-function addBadWord() {
+async function addBadWord() {
 
-    const input = document.getElementById("badWordInput");
-    const value = input.value.trim();
+const input = document.getElementById("badWordInput");
+const value = input.value.trim();
 
-    if (!value) return;
+if (!value) return;
 
+try {
+    const result = await requestBadWordsAPI("/badwords/add", "POST", {
+        token: ADMIN_TOKEN,
+        word: value
+    });
+
+    if (result.status === "ok" || result.status === "exists") {
+        if (!data.badWords.includes(value)) {
+            data.badWords.push(value);
+        }
+        input.value = "";
+        save();
+        render();
+        return;
+    }
+} catch (error) {
+    console.warn("Bad words serverga yozib bo'lmadi, localStorage ishlatilmoqda:", error.message);
+}
+
+if (!data.badWords.includes(value)) {
     data.badWords.push(value);
+}
 
-    input.value = "";
+input.value = "";
 
-    save();
-    render();
+save();
+render();
 }
 
 
@@ -427,7 +483,21 @@ function saveDays() {
 
 /* DELETE */
 
-function deleteItem(type, index) {
+async function deleteItem(type, index) {
+
+    if (type === "badWords") {
+        const item = data.badWords[index];
+        if (!item) return;
+
+        try {
+            await requestBadWordsAPI("/badwords/remove", "POST", {
+                token: ADMIN_TOKEN,
+                word: item
+            });
+        } catch (error) {
+            console.warn("Bad words serverdan o'chirishda muammo:", error.message);
+        }
+    }
 
     data[type].splice(index, 1);
 
@@ -575,6 +645,7 @@ function escapeHTML(text) {
 /* START */
 
 render();
+syncBadWordsFromServer();
 
 </script>
 

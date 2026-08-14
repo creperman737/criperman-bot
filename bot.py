@@ -56,9 +56,10 @@ def normalize(text: str) -> str:
     if text is None:
         return ""
 
-    text = text.lower()
+    text = str(text).lower()
+    text = text.replace("’", "'").replace("‘", "'")
     text = text.replace("'", "").replace("`", "")
-    text = re.sub(r"[^a-z0-9]+", " ", text)
+    text = re.sub(r"[^a-z0-9а-яё]+", " ", text, flags=re.UNICODE)
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -1103,6 +1104,10 @@ async def _require_auth(data: dict):
     return token == ADMIN_TOKEN
 
 
+async def handle_list_bad_words(request):
+    return web.json_response({"words": load_bad_words()})
+
+
 async def handle_add_bad_word(request):
     try:
         data = await request.json()
@@ -1174,6 +1179,8 @@ async def cors_middleware(request, handler):
 
 async def start_bad_words_server():
     app = web.Application(middlewares=[cors_middleware])
+    app.router.add_get('/badwords', handle_list_bad_words)
+    app.router.add_get('/badwords/list', handle_list_bad_words)
     app.router.add_post('/badwords/add', handle_add_bad_word)
     app.router.add_post('/badwords/remove', handle_remove_bad_word)
 

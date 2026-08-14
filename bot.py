@@ -44,6 +44,11 @@ BLOCKED_LINK_NAMES = [
 
 BLOCKED_STICKER_PACKS = {
     "xaastikers",
+    "lidreron",
+    "My_stickers1230",
+    "Webp_18",
+    "Delete_zapal",
+    
 }
 
 

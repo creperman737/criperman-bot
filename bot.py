@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
+from aiohttp import web
 
 # =========================================================
 # CONFIG
@@ -73,7 +74,9 @@ def is_blocked_link(url: str) -> bool:
 
     host = (parsed.hostname or "").lower().replace("www.", "")
     path = (parsed.path or "").lower()
-    url_text = f"{host} {path}"
+    query = (parsed.query or "").lower()
+    fragment = (parsed.fragment or "").lower()
+    url_text = f"{host} {path} {query} {fragment}"
 
     for blocked_name in BLOCKED_LINK_NAMES:
         blocked_key = normalize_url_fragment(blocked_name)
@@ -984,7 +987,10 @@ SAVOLLAR = [
     "🧵 Odam o'zini tasvir qilishda qanchalik so'zlardan foydalanadi?"
 ]
 
-BAD_WORDS = [
+# BAD WORDS: loadable from bad_words.txt so frontend can POST updates
+BAD_WORDS_FILE = os.path.join(os.path.dirname(__file__), "bad_words.txt")
+
+DEFAULT_BAD_WORDS = [
     "ahmoq",
     "zb",
     "axmoq",
@@ -1024,12 +1030,149 @@ BAD_WORDS = [
     "fock",
     "f*ck",
     "f u c k",
-    "f u c k",
     "kot",
     "ko't",
     "neger",
     "시발",
 ]
+
+
+def load_bad_words():
+    # Returns a list of words loaded from the file; if file missing, create from defaults
+    words = []
+    if os.path.exists(BAD_WORDS_FILE):
+        try:
+            with open(BAD_WORDS_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    w = line.strip()
+                    if w:
+                        words.append(w)
+        except Exception as e:
+            logging.error(f"bad_words: error reading file: {e}")
+            words = DEFAULT_BAD_WORDS.copy()
+    else:
+        words = DEFAULT_BAD_WORDS.copy()
+        try:
+            with open(BAD_WORDS_FILE, "w", encoding="utf-8") as f:
+                for w in words:
+                    f.write(w + "\n")
+        except Exception as e:
+            logging.error(f"bad_words: error creating file: {e}")
+
+    # Deduplicate while preserving order
+    seen = set()
+    dedup = []
+    for w in words:
+        key = w.lower().strip()
+        if key and key not in seen:
+            seen.add(key)
+            dedup.append(w)
+
+    return dedup
+
+
+def save_bad_words(words):
+    try:
+        with open(BAD_WORDS_FILE, "w", encoding="utf-8") as f:
+            for w in words:
+                f.write(w.strip() + "\n")
+    except Exception as e:
+        logging.error(f"bad_words: error saving file: {e}")
+
+
+BAD_WORDS = load_bad_words()
+
+# HTTP admin settings for managing the bad words list from the website
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
+BAD_WORDS_HOST = os.getenv("BAD_WORDS_HOST", "127.0.0.1")
+BAD_WORDS_PORT = int(os.getenv("BAD_WORDS_PORT", "8080"))
+
+
+async def _require_auth(data: dict):
+    token = data.get("token") if isinstance(data, dict) else None
+    return token == ADMIN_TOKEN
+
+
+async def handle_add_bad_word(request):
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    if not await _require_auth(data):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    word = (data.get("word") or "").strip()
+    if not word:
+        return web.json_response({"error": "missing word"}, status=400)
+
+    current = load_bad_words()
+    if word.lower() in (w.lower() for w in current):
+        return web.json_response({"status": "exists"})
+
+    current.append(word)
+    save_bad_words(current)
+
+    # update in-memory
+    global BAD_WORDS
+    BAD_WORDS = current
+
+    return web.json_response({"status": "ok", "added": word})
+
+
+async def handle_remove_bad_word(request):
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    if not await _require_auth(data):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    word = (data.get("word") or "").strip()
+    if not word:
+        return web.json_response({"error": "missing word"}, status=400)
+
+    current = load_bad_words()
+    new = [w for w in current if w.lower() != word.lower()]
+
+    if len(new) == len(current):
+        return web.json_response({"status": "not_found"})
+
+    save_bad_words(new)
+    global BAD_WORDS
+    BAD_WORDS = new
+
+    return web.json_response({"status": "ok", "removed": word})
+
+
+@web.middleware
+async def cors_middleware(request, handler):
+    # Simple permissive CORS for the admin endpoints. Adjust if you need stricter policy.
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+        return web.Response(status=200, headers=headers)
+
+    resp = await handler(request)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
+async def start_bad_words_server():
+    app = web.Application(middlewares=[cors_middleware])
+    app.router.add_post('/badwords/add', handle_add_bad_word)
+    app.router.add_post('/badwords/remove', handle_remove_bad_word)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, BAD_WORDS_HOST, BAD_WORDS_PORT)
+    await site.start()
+
+    logging.info(f"Bad words admin HTTP server started on {BAD_WORDS_HOST}:{BAD_WORDS_PORT}")
 
 
 # =========================================================
@@ -1043,16 +1186,6 @@ def save_group(chat_id):
     )
     db.commit()
 
-
-def normalize(text):
-    return (
-        text.lower()
-        .replace(" ", "")
-        .replace("*", "")
-        .replace("_", "")
-        .replace(".", "")
-        .replace("-", "")
-    )
 
 
 def get_saved_groups():
@@ -1876,6 +2009,12 @@ async def on_startup():
     asyncio.create_task(
         weekly_day_scheduler()
     )
+
+    # Start HTTP admin server for bad words management
+    try:
+        asyncio.create_task(start_bad_words_server())
+    except Exception as e:
+        logging.error(f"Failed to start bad words admin server: {e}")
 
     logging.info(
         "🤖 Criperman Bot ishga tushdi!"

@@ -58,7 +58,8 @@ def normalize(text: str) -> str:
 
     text = text.lower()
     text = text.replace("'", "").replace("`", "")
-    return re.sub(r"[^a-z0-9]+", "", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def normalize_url_fragment(value: str) -> str:
@@ -1849,7 +1850,12 @@ async def chat_listener(message: types.Message):
 
         clean_word = normalize(word)
 
-        if word in text or clean_word in clean_text:
+        if not clean_word:
+            continue
+
+        pattern = r"(?<![a-z0-9])" + re.escape(clean_word) + r"(?![a-z0-9])"
+
+        if re.search(pattern, clean_text):
 
             try:
                 await message.delete()

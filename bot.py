@@ -42,6 +42,10 @@ BLOCKED_LINK_NAMES = [
     "ipgrabber",
 ]
 
+BLOCKED_STICKER_PACKS = {
+    "xaastikers",
+}
+
 
 def normalize(text: str) -> str:
     if text is None:
@@ -1779,6 +1783,32 @@ async def info_command(message: types.Message):
         "🚀 Never Give Up!",
         parse_mode="HTML"
     )
+
+
+# =========================================================
+# BLOCKED STICKER PACKS
+# =========================================================
+
+@dp.message(F.sticker)
+async def blocked_sticker_listener(message: types.Message):
+
+    set_name = (message.sticker.set_name or "").lower().strip()
+
+    if set_name in BLOCKED_STICKER_PACKS:
+
+        try:
+            await message.delete()
+
+            await message.answer(
+                "🚫 Bu sticker pack taqiqlangan!"
+            )
+
+        except Exception as e:
+            logging.error(
+                f"Blocked sticker delete xatosi: {e}"
+            )
+
+        return
 
 
 # =========================================================

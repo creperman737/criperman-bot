@@ -941,6 +941,7 @@ SPLASH_TEXTS = [
 "⚡ Server tirik. Hozircha.",
 "🧑‍💻 Ctrl+Z hayotda ham bo'lsa edi.",
 "🐷👑 Technoblade never dies. NEVER DIES!",
+"java.py java dasturlash tili men bu yerda nima qilyapman o'zi... java:mani java.py deb chaqirmanglar, iltimos"
 ]
 
 

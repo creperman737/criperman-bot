@@ -1064,7 +1064,8 @@ DEFAULT_BAD_WORDS = [
     "neger",
     "시발",
     "https://youtube.com/@artijon",
-    "https://t.me/artijonuzb"
+    "https://t.me/artijonuzb",
+    "porn.hub",
 ]
 
 # Manual user exceptions for link blocking: add user ID or @username here.

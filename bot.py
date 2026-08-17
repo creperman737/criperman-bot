@@ -51,6 +51,8 @@ BLOCKED_STICKER_PACKS = {
     "BanaAit_by_TgEmojis_bot",
     "AliJanes00",
     "uspeh7",
+    "luvkyses",
+    "nevsinka_by_fStikBot"
 }
 
 

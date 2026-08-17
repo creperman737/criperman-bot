@@ -52,7 +52,12 @@ BLOCKED_STICKER_PACKS = {
     "AliJanes00",
     "uspeh7",
     "luvkyses",
-    "nevsinka_by_fStikBot"
+    "nevsinka_by_fStikBot",
+    "drctvtbukok9_by_TgEmojiBot",
+    "MiSideT_by_TgEmodziBot",
+    "plsmykiss",
+    "hentsbor_by_fStikBot",
+    "HANGSEED_Emoji2",
 }
 
 

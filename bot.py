@@ -50,6 +50,7 @@ BLOCKED_STICKER_PACKS = {
     "Delete_zapal",
     "BanaAit_by_TgEmojis_bot",
     "AliJanes00",
+    "uspeh7",
 }
 
 

@@ -49,7 +49,7 @@ BLOCKED_STICKER_PACKS = {
     "Webp_18",
     "Delete_zapal",
     "BanaAit_by_TgEmojis_bot",
-    
+    "AliJanes00",
 }
 
 

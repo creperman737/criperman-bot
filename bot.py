@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS groups (
 """)
 
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS link_blocked_users (
+CREATE TABLE IF NOT EXISTS link_blocks (
     chat_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     PRIMARY KEY (chat_id, user_id)
@@ -1293,7 +1293,7 @@ async def get_link_target_user(message: types.Message):
 
 def is_user_link_blocked(chat_id: int, user_id: int) -> bool:
     cursor.execute(
-        "SELECT 1 FROM link_blocked_users WHERE chat_id=? AND user_id=?",
+        "SELECT 1 FROM link_blocks WHERE chat_id=? AND user_id=?",
         (chat_id, user_id),
     )
     return cursor.fetchone() is not None
@@ -1302,12 +1302,12 @@ def is_user_link_blocked(chat_id: int, user_id: int) -> bool:
 def set_user_link_block(chat_id: int, user_id: int, blocked: bool):
     if blocked:
         cursor.execute(
-            "INSERT OR IGNORE INTO link_blocked_users (chat_id, user_id) VALUES (?, ?)",
+            "INSERT OR IGNORE INTO link_blocks (chat_id, user_id) VALUES (?, ?)",
             (chat_id, user_id),
         )
     else:
         cursor.execute(
-            "DELETE FROM link_blocked_users WHERE chat_id=? AND user_id=?",
+            "DELETE FROM link_blocks WHERE chat_id=? AND user_id=?",
             (chat_id, user_id),
         )
     db.commit()

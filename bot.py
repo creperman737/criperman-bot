@@ -1067,6 +1067,29 @@ DEFAULT_BAD_WORDS = [
     "https://t.me/artijonuzb"
 ]
 
+# Manual user exceptions for link blocking: add user ID or @username here.
+# Example: "123456789", "@artijon", "artijon"
+MANUAL_LINK_BLOCKED_USERS = {
+    "5144283333",
+    "@HideoKajimades",
+}
+
+
+def is_manual_link_blocked_user(message: types.Message) -> bool:
+    if not message.from_user:
+        return False
+
+    username = (message.from_user.username or "").strip().lower()
+    user_id = str(message.from_user.id)
+    candidates = {user_id, username, f"@{username}"}
+
+    normalized = {
+        item.strip().lower()
+        for item in MANUAL_LINK_BLOCKED_USERS
+        if item and item.strip()
+    }
+    return bool(candidates & normalized)
+
 
 def load_bad_words():
     # Returns a list of words loaded from the file; if file missing, create from defaults
@@ -2001,6 +2024,14 @@ async def chat_listener(message: types.Message):
         return
 
     if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
+        if has_link(message.text):
+            try:
+                await message.delete()
+            except Exception:
+                pass
+        return
+
+    if is_manual_link_blocked_user(message):
         if has_link(message.text):
             try:
                 await message.delete()

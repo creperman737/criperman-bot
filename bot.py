@@ -153,6 +153,14 @@ CREATE TABLE IF NOT EXISTS groups (
 )
 """)
 
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS link_blocked_users (
+    chat_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (chat_id, user_id)
+)
+""")
+
 # Birthday dublikatlarini oldini olish
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS birthday_sent (
@@ -1222,6 +1230,89 @@ def get_saved_groups():
     return [row[0] for row in cursor.fetchall()]
 
 
+async def is_group_admin(message: types.Message) -> bool:
+    if message.chat.type not in ("group", "supergroup"):
+        return False
+
+    try:
+        member = await message.bot.get_chat_member(
+            message.chat.id,
+            message.from_user.id
+        )
+    except Exception:
+        return False
+
+    return member.status in ("administrator", "creator")
+
+
+def has_link(text: str) -> bool:
+    if not text:
+        return False
+
+    pattern = r"""
+        (?:
+            https?://
+            |
+            www\.
+            |
+            t\.me/
+            |
+            telegram\.me/
+            |
+            [a-zA-Z0-9-]+\.(?:com|net|org|uz|ru|io|me|xyz|site|online)
+        )
+    """
+
+    return bool(re.search(pattern, text, re.IGNORECASE | re.VERBOSE))
+
+
+async def get_link_target_user(message: types.Message):
+    if message.reply_to_message and message.reply_to_message.from_user:
+        return message.reply_to_message.from_user
+
+    args = (message.text or "").split()
+    if len(args) < 2:
+        return None
+
+    username_or_id = args[1]
+
+    if username_or_id.startswith("@"):
+        try:
+            return await message.bot.get_chat(username_or_id)
+        except Exception:
+            return None
+
+    if username_or_id.isdigit():
+        try:
+            return await message.bot.get_chat(int(username_or_id))
+        except Exception:
+            return None
+
+    return None
+
+
+def is_user_link_blocked(chat_id: int, user_id: int) -> bool:
+    cursor.execute(
+        "SELECT 1 FROM link_blocked_users WHERE chat_id=? AND user_id=?",
+        (chat_id, user_id),
+    )
+    return cursor.fetchone() is not None
+
+
+def set_user_link_block(chat_id: int, user_id: int, blocked: bool):
+    if blocked:
+        cursor.execute(
+            "INSERT OR IGNORE INTO link_blocked_users (chat_id, user_id) VALUES (?, ?)",
+            (chat_id, user_id),
+        )
+    else:
+        cursor.execute(
+            "DELETE FROM link_blocked_users WHERE chat_id=? AND user_id=?",
+            (chat_id, user_id),
+        )
+    db.commit()
+
+
 # =========================================================
 # START
 # =========================================================
@@ -1261,6 +1352,8 @@ async def help_command(message: types.Message):
         "👥 /count — nechta odam qo'shganingizni ko'rish\n"
         "🎁 /danat — donate qilish\n"
         "📺 /channels — guruhga mos kanallar\n"
+        "🔗 /link @username — link yuborishni taqiqlash\n"
+        "🔓 /unlink @username — taqiqni olib tashlash\n"
         "🌟 /text — random splash text\n"
         "🧠 /savol — random hayot savoli\n"
         "🆔 /id — Telegram ID\n"
@@ -1269,6 +1362,67 @@ async def help_command(message: types.Message):
         "📖 /help — buyruqlar ro'yxati",
         parse_mode="HTML"
     )
+
+
+# =========================================================
+# LINK BLOCK
+# =========================================================
+
+@dp.message(Command("link"))
+async def link_command(message: types.Message):
+
+    if not await is_group_admin(message):
+        return
+
+    target = await get_link_target_user(message)
+
+    if not target:
+        await message.answer(
+            "❌ Foydalanuvchini ko'rsating.\n\n"
+            "Misol:\n"
+            "<code>/link @username</code>\n\n"
+            "Yoki odamning xabariga Reply qilib:\n"
+            "<code>/link</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    set_user_link_block(message.chat.id, target.id, True)
+
+    await message.answer(
+        f"🔗 Link yuborish taqiqlandi.\n"
+        f"👤 {target.full_name}"
+    )
+
+
+@dp.message(Command("unlink"))
+async def unlink_command(message: types.Message):
+
+    if not await is_group_admin(message):
+        return
+
+    target = await get_link_target_user(message)
+
+    if not target:
+        await message.answer(
+            "❌ Foydalanuvchini ko'rsating.\n\n"
+            "Misol:\n"
+            "<code>/unlink @username</code>\n\n"
+            "Yoki xabariga Reply qilib:\n"
+            "<code>/unlink</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    if is_user_link_blocked(message.chat.id, target.id):
+        set_user_link_block(message.chat.id, target.id, False)
+        await message.answer(
+            f"✅ Link taqiqi olib tashlandi.\n"
+            f"👤 {target.full_name}"
+        )
+        return
+
+    await message.answer("ℹ️ Bu foydalanuvchiga link taqiqi berilmagan.")
 
 
 # =========================================================
@@ -1842,6 +1996,17 @@ async def blocked_sticker_listener(message: types.Message):
 
 @dp.message(F.text)
 async def chat_listener(message: types.Message):
+
+    if message.chat.type not in ("group", "supergroup"):
+        return
+
+    if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
+        if has_link(message.text):
+            try:
+                await message.delete()
+            except Exception:
+                pass
+        return
 
     text = message.text.lower()
 

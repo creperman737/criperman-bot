@@ -48,6 +48,7 @@ BLOCKED_STICKER_PACKS = {
     "My_stickers1230",
     "Webp_18",
     "Delete_zapal",
+    "BanaAit_by_TgEmojis_bot",
     
 }
 

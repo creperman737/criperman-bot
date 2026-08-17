@@ -1071,7 +1071,6 @@ DEFAULT_BAD_WORDS = [
 # Example: "123456789", "@artijon", "artijon"
 MANUAL_LINK_BLOCKED_USERS = {
     "5144283333",
-    "@HideoKajimades",
 }
 
 

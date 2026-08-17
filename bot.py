@@ -1022,7 +1022,7 @@ DEFAULT_BAD_WORDS = [
     "gandon",
     "гандон",
     "гей",
-    "далбаеб",
+    '"далбаеб",
     "далбаёб",
     "ебан",
     "ебать",
@@ -1047,7 +1047,8 @@ DEFAULT_BAD_WORDS = [
     "ko't",
     "neger",
     "시발",
-    "https://youtube.com/@artijon"
+    "https://youtube.com/@artijon",
+    "https://t.me/artijonuzb"
 ]
 
 

@@ -1047,6 +1047,7 @@ DEFAULT_BAD_WORDS = [
     "ko't",
     "neger",
     "시발",
+    "https://youtube.com/@artijon"
 ]
 
 

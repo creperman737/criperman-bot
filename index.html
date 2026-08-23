@@ -336,9 +336,9 @@
             <!-- HOME VIEW -->
             <div class="view active" id="home">
                 <div class="menu-section">
-                    <div class="menu-item" onclick="showView('texts')">
+                    <div class="menu-item" onclick="showViewWithInit('texts')">
                         <span class="menu-emoji">✨</span>
-                        <span class="menu-label">Splash Text</span>
+                        <span class="menu-label">Ilhom</span>
                     </div>
                     <div class="menu-item" onclick="showView('questions')">
                         <span class="menu-emoji">❓</span>
@@ -374,10 +374,13 @@
             <!-- SPLASH TEXT VIEW -->
             <div class="view" id="texts">
                 <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
-                <div class="card-title">✨ Splash Text</div>
-                <textarea id="splashInput" placeholder="Yangi splash text qo'shish..."></textarea>
-                <button class="btn btn-primary" onclick="addSplash()">💾 Saqlash</button>
-                <div id="splashList"></div>
+                <div class="card-title">✨ Bugungi Ilhom</div>
+                <div class="card">
+                    <div id="randomSplash" style="font-size: 16px; font-weight: 500; line-height: 1.8; color: #5cff88; text-align: center; padding: 20px; background: rgba(92, 255, 136, 0.1); border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                        Yangilash uchun pastgi tugmani bosing...
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="getRandomSplash()">🎲 Yangi Ilhom</button>
             </div>
 
             <!-- QUESTIONS VIEW -->
@@ -483,9 +486,9 @@
                 <div class="nav-emoji">🏠</div>
                 <div class="nav-label">Bosh</div>
             </div>
-            <div class="nav-item" onclick="showView('texts'); updateNav(1)">
+            <div class="nav-item" onclick="showViewWithInit('texts'); updateNav(1)">
                 <div class="nav-emoji">✨</div>
-                <div class="nav-label">Text</div>
+                <div class="nav-label">Ilhom</div>
             </div>
             <div class="nav-item" onclick="showView('games'); updateNav(2)">
                 <div class="nav-emoji">🎮</div>
@@ -525,51 +528,31 @@
         }
 
         // Splash Text Management
-        async function addSplash() {
-            const text = document.getElementById('splashInput').value.trim();
-            if (!text) {
-                alert('Matn kiriting!');
-                return;
-            }
-            try {
-                const response = await fetch(`${API_HOST}/api/splash`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-                if (response.ok) {
-                    document.getElementById('splashInput').value = '';
-                    loadSplash();
-                }
-            } catch (e) {
-                console.error('Error:', e);
-            }
-        }
-
-        async function loadSplash() {
+        async function getRandomSplash() {
             try {
                 const response = await fetch(`${API_HOST}/api/splash`);
                 const data = await response.json();
-                const list = document.getElementById('splashList');
-                list.innerHTML = (data.texts || []).map((text, i) => `
-                    <div class="item">
-                        <div class="item-content">"${text}"</div>
-                        <div class="item-actions">
-                            <button class="btn btn-danger" onclick="deleteSplash(${i})">🗑️</button>
-                        </div>
-                    </div>
-                `).join('') || '<div class="empty-msg">Splash text yo\'q</div>';
+                const splashTexts = data.texts || [];
+                
+                if (splashTexts.length === 0) {
+                    document.getElementById('randomSplash').innerHTML = '📝 Hozircha splash text yo\'q';
+                    return;
+                }
+                
+                const randomIndex = Math.floor(Math.random() * splashTexts.length);
+                const randomText = splashTexts[randomIndex];
+                document.getElementById('randomSplash').innerHTML = `"${randomText}"`;
             } catch (e) {
                 console.error('Error:', e);
+                document.getElementById('randomSplash').innerHTML = '❌ Xatolik yuz berdi';
             }
         }
 
-        async function deleteSplash(index) {
-            try {
-                const response = await fetch(`${API_HOST}/api/splash/${index}`, { method: 'DELETE' });
-                if (response.ok) loadSplash();
-            } catch (e) {
-                console.error('Error:', e);
+        // Load random splash on view open
+        function showViewWithInit(viewName) {
+            showView(viewName);
+            if (viewName === 'texts') {
+                getRandomSplash();
             }
         }
 
@@ -721,7 +704,6 @@
 
         // Load all data on startup
         function loadAllData() {
-            loadSplash();
             loadQuestions();
             loadBadWords();
             loadLinks();

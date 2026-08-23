@@ -6,650 +6,730 @@
     <title>⚙️ CURINASAN — Bot Control</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-<style>
-* {
-    box-sizing: border-box;
-}
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0b0f0d;
-    color: #fff;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172e;
+            color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
-header {
-    padding: 25px;
-    background: #111814;
-    border-bottom: 1px solid #26352b;
-}
+        /* Telegram WebApp Integration */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(135deg, #0f172e 0%, #1a2647 100%);
+        }
 
-header h1 {
-    margin: 0;
-    color: #5cff88;
-}
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1f3a5f 0%, #2d5a8c 100%);
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
 
-header p {
-    margin: 7px 0 0;
-    color: #9aa69d;
-}
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #5cff88;
+            text-align: center;
+        }
 
-.container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 25px;
-}
+        .header-subtitle {
+            font-size: 12px;
+            color: #a0aac1;
+            text-align: center;
+            margin-top: 4px;
+        }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-}
+        /* Main Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 64px;
+        }
 
-.card {
-    background: #111814;
-    border: 1px solid #26352b;
-    border-radius: 15px;
-    padding: 20px;
-}
+        .view {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease-in;
+        }
 
-.card h2 {
-    margin-top: 0;
-}
+        .view.active {
+            display: block;
+        }
 
-input,
-textarea,
-select {
-    width: 100%;
-    padding: 12px;
-    margin: 7px 0;
-    background: #0b0f0d;
-    color: white;
-    border: 1px solid #334439;
-    border-radius: 9px;
-    outline: none;
-}
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-textarea {
-    min-height: 90px;
-    resize: vertical;
-}
+        /* Menu Items */
+        .menu-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
 
-input:focus,
-textarea:focus,
-select:focus {
-    border-color: #5cff88;
-}
+        .menu-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(92, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-button {
-    border: 0;
-    border-radius: 9px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-weight: bold;
-}
+        .menu-item:active {
+            background: rgba(92, 255, 136, 0.15);
+            border-color: #5cff88;
+            transform: scale(0.95);
+        }
 
-.add {
-    width: 100%;
-    background: #5cff88;
-    color: #07100a;
-}
+        .menu-emoji {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
 
-.add:hover {
-    background: #42e873;
-}
+        .menu-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
 
-.list {
-    margin-top: 15px;
-}
+        /* Back Button */
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+            background: none;
+            border: none;
+            color: #5cff88;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
 
-.item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    margin-top: 8px;
-    background: #0b0f0d;
-    border: 1px solid #26352b;
-    border-radius: 9px;
-    word-break: break-word;
-}
+        /* Card */
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(92, 255, 136, 0.15);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
 
-.delete {
-    flex-shrink: 0;
-    background: #ff4d5e;
-    color: white;
-}
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5cff88;
+            margin-bottom: 8px;
+        }
 
-.delete:hover {
-    background: #ff263b;
-}
+        /* Input Fields */
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-.day-box {
-    margin-top: 12px;
-}
+        input:focus, textarea:focus, select:focus {
+            border-color: #5cff88;
+            box-shadow: 0 0 6px rgba(92, 255, 136, 0.2);
+        }
 
-.empty {
-    color: #68756d;
-    text-align: center;
-    padding: 10px;
-}
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
 
-.danger {
-    border-color: #633038;
-}
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 11px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-.question-answer {
-    margin-top: 8px;
-}
+        .btn-primary {
+            background: #5cff88;
+            color: #0f172e;
+            margin-bottom: 12px;
+        }
 
-.footer {
-    text-align: center;
-    color: #68756d;
-    padding: 30px;
-}
+        .btn-primary:active {
+            background: #42e873;
+            transform: scale(0.98);
+        }
 
-@media(max-width:600px) {
-    .container {
-        padding: 12px;
-    }
-}
-</style>
+        .btn-danger {
+            background: #ff4d5e;
+            color: white;
+            font-size: 12px;
+            padding: 7px;
+            flex: 1;
+        }
+
+        .btn-danger:active {
+            background: #ff263b;
+        }
+
+        /* Items List */
+        .item {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid #5cff88;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            word-break: break-word;
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #7a8fa0;
+            padding: 20px 10px;
+            font-size: 13px;
+        }
+
+        /* Bottom Navigation */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, rgba(31, 58, 95, 0.8) 0%, rgba(31, 58, 95, 0.95) 100%);
+            border-top: 1px solid rgba(92, 255, 136, 0.2);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            padding: 8px 0;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            color: #5cff88;
+        }
+
+        .nav-item:not(.active) {
+            color: #7a8fa0;
+        }
+
+        .nav-emoji {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Scrollbar */
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(92, 255, 136, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Status Bar */
+        .status {
+            font-size: 12px;
+            color: #5cff88;
+            padding: 8px;
+            text-align: center;
+            background: rgba(92, 255, 136, 0.1);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .capitalize {
+            text-transform: capitalize;
+        }
+    </style>
 </head>
-
 <body>
-
-<header>
-    <h1>⚡ Criperman Bot</h1>
-    <p>Admin Panel — ma'lumotlarni oson boshqarish</p>
-</header>
-
-<div class="container">
-
-<div class="grid">
-
-<!-- BAD WORDS -->
-<div class="card danger">
-    <h2>🚫 Yomon so‘zlar</h2>
-
-    <input id="badWordInput"
-           placeholder="Masalan: baka">
-
-    <button class="add" onclick="addBadWord()">
-        + Qo‘shish
-    </button>
-
-    <div id="badWordsList" class="list"></div>
-</div>
-
-
-<!-- DANGEROUS LINKS -->
-<div class="card danger">
-    <h2>🔗 Xavfli linklar</h2>
-
-    <input id="dangerLinkInput"
-           placeholder="Masalan: iplogger">
-
-    <button class="add" onclick="addDangerLink()">
-        + Qo‘shish
-    </button>
-
-    <div id="dangerLinksList" class="list"></div>
-</div>
-
-
-<!-- SPLASH TEXT -->
-<div class="card">
-    <h2>✨ Splash text</h2>
-
-    <textarea id="splashInput"
-              placeholder="Masalan: Never Give Up!"></textarea>
-
-    <button class="add" onclick="addSplash()">
-        + Qo‘shish
-    </button>
-
-    <div id="splashList" class="list"></div>
-</div>
-
-
-<!-- QUESTIONS -->
-<div class="card">
-    <h2>❓ Savollar</h2>
-
-    <input id="questionInput"
-           placeholder="Savol">
-
-    <textarea id="answerInput"
-              placeholder="Javob"></textarea>
-
-    <button class="add" onclick="addQuestion()">
-        + Qo‘shish
-    </button>
-
-    <div id="questionsList" class="list"></div>
-</div>
-
-</div>
-
-
-<!-- WEEK DAYS -->
-
-<div class="card" style="margin-top:20px">
-
-<h2>📅 Haftalik tilaklar</h2>
-
-<div class="day-box">
-    <label>🌅 Dushanba</label>
-    <textarea id="monday"
-        placeholder="Dushanba tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>🌤️ Seshanba</label>
-    <textarea id="tuesday"
-        placeholder="Seshanba tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>☀️ Chorshanba</label>
-    <textarea id="wednesday"
-        placeholder="Chorshanba tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>🌿 Payshanba</label>
-    <textarea id="thursday"
-        placeholder="Payshanba tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>🌙 Juma</label>
-    <textarea id="friday"
-        placeholder="Juma tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>😎 Shanba</label>
-    <textarea id="saturday"
-        placeholder="Shanba tilagi..."></textarea>
-</div>
-
-<div class="day-box">
-    <label>🌅 Yakshanba</label>
-    <textarea id="sunday"
-        placeholder="Yakshanba tilagi..."></textarea>
-</div>
-
-<button class="add" onclick="saveDays()">
-    💾 Haftalik tilaklarni saqlash
-</button>
-
-</div>
-
-</div>
-
-<div class="footer">
-    Criperman Bot ⚡ Never Give Up!
-</div>
-
-
-<script>
-
-const data = JSON.parse(
-    localStorage.getItem("cripermanBotData")
-) || {
-    badWords: [],
-    dangerLinks: [],
-    splashes: [],
-    questions: [],
-    days: {}
-};
-
-const BAD_WORDS_API = "http://127.0.0.1:8080";
-const ADMIN_TOKEN = "change-me";
-
-function save() {
-localStorage.setItem(
-    "cripermanBotData",
-    JSON.stringify(data)
-);
-}
-
-async function requestBadWordsAPI(path, method = "GET", payload = null) {
-const options = {
-    method,
-    headers: {
-        "Content-Type": "application/json"
-    }
-};
-
-if (payload) {
-    options.body = JSON.stringify(payload);
-}
-
-const response = await fetch(`${BAD_WORDS_API}${path}`, options);
-
-if (!response.ok) {
-    throw new Error(`API xato: ${response.status}`)
-}
-
-return response.json();
-}
-
-async function syncBadWordsFromServer() {
-try {
-    const result = await requestBadWordsAPI("/badwords/list");
-    if (Array.isArray(result.words) && result.words.length) {
-        data.badWords = result.words;
-        save();
-        render();
-    }
-} catch (error) {
-    console.warn("Bad words serverga ulanib bo'lmadi:", error.message);
-}
-}
-
-/* BAD WORDS */
-
-async function addBadWord() {
-
-const input = document.getElementById("badWordInput");
-const value = input.value.trim();
-
-if (!value) return;
-
-try {
-    const result = await requestBadWordsAPI("/badwords/add", "POST", {
-        token: ADMIN_TOKEN,
-        word: value
-    });
-
-    if (result.status === "ok" || result.status === "exists") {
-        if (!data.badWords.includes(value)) {
-            data.badWords.push(value);
-        }
-        input.value = "";
-        save();
-        render();
-        return;
-    }
-} catch (error) {
-    console.warn("Bad words serverga yozib bo'lmadi, localStorage ishlatilmoqda:", error.message);
-}
-
-if (!data.badWords.includes(value)) {
-    data.badWords.push(value);
-}
-
-input.value = "";
-
-save();
-render();
-}
-
-
-/* DANGEROUS LINKS */
-
-function addDangerLink() {
-
-    const input =
-        document.getElementById("dangerLinkInput");
-
-    const value = input.value.trim();
-
-    if (!value) return;
-
-    data.dangerLinks.push(value);
-
-    input.value = "";
-
-    save();
-    render();
-}
-
-
-/* SPLASH */
-
-function addSplash() {
-
-    const input =
-        document.getElementById("splashInput");
-
-    const value = input.value.trim();
-
-    if (!value) return;
-
-    data.splashes.push(value);
-
-    input.value = "";
-
-    save();
-    render();
-}
-
-
-/* QUESTIONS */
-
-function addQuestion() {
-
-    const question =
-        document.getElementById("questionInput");
-
-    const answer =
-        document.getElementById("answerInput");
-
-    if (!question.value.trim()) return;
-
-    data.questions.push({
-        question: question.value.trim(),
-        answer: answer.value.trim()
-    });
-
-    question.value = "";
-    answer.value = "";
-
-    save();
-    render();
-}
-
-
-/* DAYS */
-
-function saveDays() {
-
-    const days = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday"
-    ];
-
-    days.forEach(day => {
-
-        data.days[day] =
-            document.getElementById(day).value;
-
-    });
-
-    save();
-
-    alert("✅ Haftalik tilaklar saqlandi!");
-}
-
-
-/* DELETE */
-
-async function deleteItem(type, index) {
-
-    if (type === "badWords") {
-        const item = data.badWords[index];
-        if (!item) return;
-
-        try {
-            await requestBadWordsAPI("/badwords/remove", "POST", {
-                token: ADMIN_TOKEN,
-                word: item
-            });
-        } catch (error) {
-            console.warn("Bad words serverdan o'chirishda muammo:", error.message);
-        }
-    }
-
-    data[type].splice(index, 1);
-
-    save();
-    render();
-}
-
-
-/* RENDER */
-
-function render() {
-
-    renderArray(
-        "badWordsList",
-        data.badWords,
-        "badWords"
-    );
-
-    renderArray(
-        "dangerLinksList",
-        data.dangerLinks,
-        "dangerLinks"
-    );
-
-    renderArray(
-        "splashList",
-        data.splashes,
-        "splashes"
-    );
-
-    renderQuestions();
-
-    loadDays();
-}
-
-
-function renderArray(id, array, type) {
-
-    const container =
-        document.getElementById(id);
-
-    if (!array.length) {
-
-        container.innerHTML =
-            `<div class="empty">
-                Hozircha hech narsa yo‘q
-             </div>`;
-
-        return;
-    }
-
-    container.innerHTML =
-        array.map((item, index) => `
-            <div class="item">
-                <span>${escapeHTML(item)}</span>
-
-                <button
-                    class="delete"
-                    onclick="deleteItem('${type}', ${index})">
-                    🗑
-                </button>
-            </div>
-        `).join("");
-}
-
-
-function renderQuestions() {
-
-    const container =
-        document.getElementById("questionsList");
-
-    if (!data.questions.length) {
-
-        container.innerHTML =
-            `<div class="empty">
-                Hozircha savol yo‘q
-             </div>`;
-
-        return;
-    }
-
-    container.innerHTML =
-        data.questions.map((item, index) => `
-            <div class="item">
-
-                <div>
-                    <b>${escapeHTML(item.question)}</b>
-
-                    ${
-                        item.answer
-                        ? `<div class="question-answer">
-                            ${escapeHTML(item.answer)}
-                           </div>`
-                        : ""
-                    }
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">⚙️ CURINASAN</div>
+            <div class="header-subtitle">Bot Control Center</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content" id="content">
+            
+            <!-- HOME VIEW -->
+            <div class="view active" id="home">
+                <div class="menu-section">
+                    <div class="menu-item" onclick="showView('texts')">
+                        <span class="menu-emoji">✨</span>
+                        <span class="menu-label">Splash Text</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('questions')">
+                        <span class="menu-emoji">❓</span>
+                        <span class="menu-label">Savollar</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('links')">
+                        <span class="menu-emoji">🔗</span>
+                        <span class="menu-label">Linklar</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('channels')">
+                        <span class="menu-emoji">📢</span>
+                        <span class="menu-label">Kanallar</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('games')">
+                        <span class="menu-emoji">🎮</span>
+                        <span class="menu-label">O'yinlar</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('badwords')">
+                        <span class="menu-emoji">🚫</span>
+                        <span class="menu-label">Yomon So'z</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('settings')">
+                        <span class="menu-emoji">⚙️</span>
+                        <span class="menu-label">Sozlamalar</span>
+                    </div>
+                    <div class="menu-item" onclick="showView('info')">
+                        <span class="menu-emoji">ℹ️</span>
+                        <span class="menu-label">Ma'lumot</span>
+                    </div>
                 </div>
-
-                <button
-                    class="delete"
-                    onclick="deleteItem('questions', ${index})">
-                    🗑
-                </button>
-
             </div>
-        `).join("");
-}
 
+            <!-- SPLASH TEXT VIEW -->
+            <div class="view" id="texts">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">✨ Splash Text</div>
+                <textarea id="splashInput" placeholder="Yangi splash text qo'shish..."></textarea>
+                <button class="btn btn-primary" onclick="addSplash()">💾 Saqlash</button>
+                <div id="splashList"></div>
+            </div>
 
-/* LOAD DAYS */
+            <!-- QUESTIONS VIEW -->
+            <div class="view" id="questions">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">❓ Savol va Javob</div>
+                <input type="text" id="questionInput" placeholder="Savol...">
+                <textarea id="answerInput" placeholder="Javob..."></textarea>
+                <button class="btn btn-primary" onclick="addQuestion()">+ Qo'shish</button>
+                <div id="questionsList"></div>
+            </div>
 
-function loadDays() {
+            <!-- LINKS VIEW -->
+            <div class="view" id="links">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">🔗 Xavfli Linklar</div>
+                <input type="text" id="linkInput" placeholder="Masalan: iplogger">
+                <button class="btn btn-primary" onclick="addLink()">+ Qo'shish</button>
+                <div id="linksList"></div>
+            </div>
 
-    const days = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday"
-    ];
+            <!-- CHANNELS VIEW -->
+            <div class="view" id="channels">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">📢 Bot Kanallari</div>
+                <div class="status">Bot'ga ulangan kanallar ro'yxati</div>
+                <div id="channelsList"></div>
+            </div>
 
-    days.forEach(day => {
+            <!-- GAMES VIEW -->
+            <div class="view" id="games">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">🎮 Mini O'yinlar</div>
+                <div class="menu-section">
+                    <div class="menu-item">
+                        <span class="menu-emoji">🔥</span>
+                        <span class="menu-label">Element Battle</span>
+                    </div>
+                    <div class="menu-item">
+                        <span class="menu-emoji">🪨</span>
+                        <span class="menu-label">Tosh-Qaychi</span>
+                    </div>
+                    <div class="menu-item">
+                        <span class="menu-emoji">🎲</span>
+                        <span class="menu-label">Zar O'yni</span>
+                    </div>
+                    <div class="menu-item">
+                        <span class="menu-emoji">❓</span>
+                        <span class="menu-label">Quiz</span>
+                    </div>
+                </div>
+            </div>
 
-        document.getElementById(day).value =
-            data.days[day] || "";
+            <!-- BAD WORDS VIEW -->
+            <div class="view" id="badwords">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">🚫 Yomon So'zlar</div>
+                <input type="text" id="badwordInput" placeholder="Masalan: baka">
+                <button class="btn btn-primary" onclick="addBadWord()">+ Qo'shish</button>
+                <div id="badwordsList"></div>
+            </div>
 
-    });
-}
+            <!-- SETTINGS VIEW -->
+            <div class="view" id="settings">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">⚙️ Sozlamalar</div>
+                <div class="card">
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #a0aac1;">
+                        🌙 Tungi Rejim
+                    </label>
+                    <input type="checkbox" style="width: auto;" id="darkMode" checked>
+                </div>
+                <div class="card">
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; color: #a0aac1;">
+                        🔔 Bildirishnomalar
+                    </label>
+                    <input type="checkbox" style="width: auto;" id="notifications" checked>
+                </div>
+            </div>
 
+            <!-- INFO VIEW -->
+            <div class="view" id="info">
+                <button class="back-btn" onclick="showView('home'); updateNav(0)">← Orqaga</button>
+                <div class="card-title">ℹ️ Bot Haqida</div>
+                <div class="card">
+                    <div style="font-size: 13px; line-height: 1.6; color: #c0c8d8;">
+                        <strong style="color: #5cff88;">🤖 Curina Bot</strong><br>
+                        Telegram bot boshqaruv markazi<br><br>
+                        
+                        <strong style="color: #5cff88;">📊 Versiya:</strong> 2.0<br>
+                        <strong style="color: #5cff88;">🎮 O'yinlar:</strong> 4+<br>
+                        <strong style="color: #5cff88;">👥 Administratorlar:</strong> Qo'shildi<br><br>
+                        
+                        <strong style="color: #5cff88;">💚 Never Give Up!</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-/* SECURITY */
+        <!-- Bottom Navigation -->
+        <div class="navbar">
+            <div class="nav-item active" onclick="showView('home'); updateNav(0)">
+                <div class="nav-emoji">🏠</div>
+                <div class="nav-label">Bosh</div>
+            </div>
+            <div class="nav-item" onclick="showView('texts'); updateNav(1)">
+                <div class="nav-emoji">✨</div>
+                <div class="nav-label">Text</div>
+            </div>
+            <div class="nav-item" onclick="showView('games'); updateNav(2)">
+                <div class="nav-emoji">🎮</div>
+                <div class="nav-label">O'yin</div>
+            </div>
+            <div class="nav-item" onclick="showView('badwords'); updateNav(3)">
+                <div class="nav-emoji">🚫</div>
+                <div class="nav-label">Filter</div>
+            </div>
+            <div class="nav-item" onclick="showView('settings'); updateNav(4)">
+                <div class="nav-emoji">⚙️</div>
+                <div class="nav-label">Soz.</div>
+            </div>
+        </div>
+    </div>
 
-function escapeHTML(text) {
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.enableClosingConfirmation();
+        }
 
-    return text
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
+        const API_HOST = 'http://localhost:8000';
 
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewName)?.classList.add('active');
+            document.getElementById('content').scrollTop = 0;
+        }
 
-/* START */
+        function updateNav(index) {
+            document.querySelectorAll('.nav-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+        }
 
-render();
-syncBadWordsFromServer();
+        // Splash Text Management
+        async function addSplash() {
+            const text = document.getElementById('splashInput').value.trim();
+            if (!text) {
+                alert('Matn kiriting!');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_HOST}/api/splash`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if (response.ok) {
+                    document.getElementById('splashInput').value = '';
+                    loadSplash();
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
 
-</script>
+        async function loadSplash() {
+            try {
+                const response = await fetch(`${API_HOST}/api/splash`);
+                const data = await response.json();
+                const list = document.getElementById('splashList');
+                list.innerHTML = (data.texts || []).map((text, i) => `
+                    <div class="item">
+                        <div class="item-content">"${text}"</div>
+                        <div class="item-actions">
+                            <button class="btn btn-danger" onclick="deleteSplash(${i})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="empty-msg">Splash text yo\'q</div>';
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
 
+        async function deleteSplash(index) {
+            try {
+                const response = await fetch(`${API_HOST}/api/splash/${index}`, { method: 'DELETE' });
+                if (response.ok) loadSplash();
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        // Questions Management
+        async function addQuestion() {
+            const question = document.getElementById('questionInput').value.trim();
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!question || !answer) {
+                alert('Savol va javobni kiriting!');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_HOST}/api/questions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, answer })
+                });
+                if (response.ok) {
+                    document.getElementById('questionInput').value = '';
+                    document.getElementById('answerInput').value = '';
+                    loadQuestions();
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch(`${API_HOST}/api/questions`);
+                const data = await response.json();
+                const list = document.getElementById('questionsList');
+                list.innerHTML = (data.questions || []).map((q, i) => `
+                    <div class="item">
+                        <div class="item-content">
+                            <div style="font-weight: 600; color: #5cff88;">❓ ${q.question}</div>
+                            <div style="font-size: 12px; color: #a0aac1; margin-top: 4px;">💬 ${q.answer}</div>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteQuestion(${i})" style="width: auto;">🗑️</button>
+                    </div>
+                `).join('') || '<div class="empty-msg">Savollar yo\'q</div>';
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function deleteQuestion(index) {
+            try {
+                const response = await fetch(`${API_HOST}/api/questions/${index}`, { method: 'DELETE' });
+                if (response.ok) loadQuestions();
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        // Bad Words Management
+        async function addBadWord() {
+            const word = document.getElementById('badwordInput').value.trim();
+            if (!word) {
+                alert('So\'zni kiriting!');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_HOST}/api/badwords`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word })
+                });
+                if (response.ok) {
+                    document.getElementById('badwordInput').value = '';
+                    loadBadWords();
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function loadBadWords() {
+            try {
+                const response = await fetch(`${API_HOST}/api/badwords`);
+                const data = await response.json();
+                const list = document.getElementById('badwordsList');
+                list.innerHTML = (data.words || []).map((word, i) => `
+                    <div class="item">
+                        <div class="item-content">${word}</div>
+                        <button class="btn btn-danger" onclick="deleteBadWord('${word}')" style="width: auto;">🗑️</button>
+                    </div>
+                `).join('') || '<div class="empty-msg">Yomon so\'zlar yo\'q</div>';
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function deleteBadWord(word) {
+            try {
+                const response = await fetch(`${API_HOST}/api/badwords/${encodeURIComponent(word)}`, { method: 'DELETE' });
+                if (response.ok) loadBadWords();
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        // Links Management
+        async function addLink() {
+            const link = document.getElementById('linkInput').value.trim();
+            if (!link) {
+                alert('Link kiriting!');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_HOST}/api/dangerlinks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link })
+                });
+                if (response.ok) {
+                    document.getElementById('linkInput').value = '';
+                    loadLinks();
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function loadLinks() {
+            try {
+                const response = await fetch(`${API_HOST}/api/dangerlinks`);
+                const data = await response.json();
+                const list = document.getElementById('linksList');
+                list.innerHTML = (data.links || []).map((link, i) => `
+                    <div class="item">
+                        <div class="item-content">${link}</div>
+                        <button class="btn btn-danger" onclick="deleteLink('${link}')" style="width: auto;">🗑️</button>
+                    </div>
+                `).join('') || '<div class="empty-msg">Xavfli linklar yo\'q</div>';
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function deleteLink(link) {
+            try {
+                const response = await fetch(`${API_HOST}/api/dangerlinks/${encodeURIComponent(link)}`, { method: 'DELETE' });
+                if (response.ok) loadLinks();
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        // Load all data on startup
+        function loadAllData() {
+            loadSplash();
+            loadQuestions();
+            loadBadWords();
+            loadLinks();
+        }
+
+        // Initialize
+        loadAllData();
+        setInterval(loadAllData, 30000); // Refresh every 30 seconds
+    </script>
 </body>
 </html>

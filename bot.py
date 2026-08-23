@@ -2060,21 +2060,6 @@ async def count_command(message: types.Message):
 
 
 # =========================================================
-# RANDOM TEXT
-# =========================================================
-
-@dp.message(Command("text"))
-async def text_command(message: types.Message):
-
-    text = random.choice(SPLASH_TEXTS)
-
-    await message.answer(
-        f"🌟 <b>Random Splash Text:</b>\n\n{text}",
-        parse_mode="HTML"
-    )
-
-
-# =========================================================
 # STATS
 # =========================================================
 

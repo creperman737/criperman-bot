@@ -154,6 +154,16 @@ CREATE TABLE IF NOT EXISTS groups (
 """)
 
 cursor.execute("""
+CREATE TABLE IF NOT EXISTS chat_members (
+    chat_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    is_bot INTEGER DEFAULT 0,
+    PRIMARY KEY (chat_id, user_id)
+)
+""")
+
+cursor.execute("""
 CREATE TABLE IF NOT EXISTS link_blocks (
     chat_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -1179,6 +1189,37 @@ def save_group(chat_id):
         (str(chat_id),)
     )
     db.commit()
+
+
+def save_member(chat_id, user):
+    if not user or user.is_bot:
+        return
+
+    cursor.execute("""
+    INSERT OR REPLACE INTO chat_members
+    (chat_id, user_id, first_name, is_bot)
+    VALUES (?, ?, ?, ?)
+    """, (
+        chat_id,
+        user.id,
+        user.full_name or user.first_name or "Foydalanuvchi",
+        int(user.is_bot),
+    ))
+    db.commit()
+
+
+def get_chat_members(chat_id):
+    cursor.execute("""
+    SELECT user_id, first_name
+    FROM chat_members
+    WHERE chat_id=? AND is_bot=0
+    ORDER BY first_name COLLATE NOCASE
+    """, (chat_id,))
+    return cursor.fetchall()
+
+
+def utf16_length(text):
+    return len(text.encode("utf-16-le")) // 2
 
 
 

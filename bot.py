@@ -1496,6 +1496,7 @@ async def help_command(message: types.Message):
         "📺 /channels — guruhga mos kanallar\n"
         "🔗 /link @username — link yuborishni taqiqlash\n"
         "🔓 /unlink @username — taqiqni olib tashlash\n"
+        "📣 /mentionall — ko'rilgan guruh a'zolarini tag qilish (adminlar uchun)\n"
         "🌟 /text — random splash text\n"
         "🧠 /savol — random hayot savoli\n"
         "🆔 /id — Telegram ID\n"
@@ -1504,6 +1505,47 @@ async def help_command(message: types.Message):
         "📖 /help — buyruqlar ro'yxati",
         parse_mode="HTML"
     )
+
+
+@dp.message(Command("mentionall"))
+async def mentionall_command(message: types.Message):
+
+    if not await is_group_admin(message):
+        await message.answer("❌ Faqat guruh adminlari ishlata oladi!")
+        return
+
+    save_group(message.chat.id)
+    save_member(message.chat.id, message.from_user)
+    members = get_chat_members(message.chat.id)
+
+    if not members:
+        await message.answer(
+            "ℹ️ Hozircha tag qilish uchun ko'rilgan a'zolar topilmadi."
+        )
+        return
+
+    for index in range(0, len(members), 35):
+        text_parts = []
+        entities = []
+
+        for user_id, first_name in members[index:index + 35]:
+            text_parts.append(f"{first_name} ")
+            current_text = "".join(text_parts)
+            entities.append(types.MessageEntity(
+                type="text_mention",
+                offset=utf16_length(current_text) - utf16_length(first_name) - 1,
+                length=utf16_length(first_name),
+                user=types.User(
+                    id=user_id,
+                    is_bot=False,
+                    first_name=first_name,
+                ),
+            ))
+
+        await message.answer(
+            "".join(text_parts).strip(),
+            entities=entities,
+        )
 
 
 # =========================================================
@@ -1679,6 +1721,8 @@ async def welcome_new_members(message: types.Message):
     save_group(message.chat.id)
 
     for member in message.new_chat_members:
+
+        save_member(message.chat.id, member)
 
         # Begona bot
         if member.is_bot:
@@ -2126,6 +2170,8 @@ async def chat_listener(message: types.Message):
 
     if message.chat.type not in ("group", "supergroup"):
         return
+
+    save_member(message.chat.id, message.from_user)
 
     if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
         if has_link(message.text):

@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
-from aiohttp import web
+import aiohttp
 
 # =========================================================
 # CONFIG
@@ -1148,25 +1148,25 @@ async def _require_auth(data: dict):
 
 
 async def handle_list_bad_words(request):
-    return web.json_response({"words": load_bad_words()})
+    return aiohttp.web.json_response({"words": load_bad_words()})
 
 
 async def handle_add_bad_word(request):
     try:
         data = await request.json()
     except Exception:
-        return web.json_response({"error": "invalid json"}, status=400)
+        return aiohttp.web.json_response({"error": "invalid json"}, status=400)
 
     if not await _require_auth(data):
-        return web.json_response({"error": "unauthorized"}, status=401)
+        return aiohttp.web.json_response({"error": "unauthorized"}, status=401)
 
     word = (data.get("word") or "").strip()
     if not word:
-        return web.json_response({"error": "missing word"}, status=400)
+        return aiohttp.web.json_response({"error": "missing word"}, status=400)
 
     current = load_bad_words()
     if word.lower() in (w.lower() for w in current):
-        return web.json_response({"status": "exists"})
+        return aiohttp.web.json_response({"status": "exists"})
 
     current.append(word)
     save_bad_words(current)
@@ -1175,36 +1175,36 @@ async def handle_add_bad_word(request):
     global BAD_WORDS
     BAD_WORDS = current
 
-    return web.json_response({"status": "ok", "added": word})
+    return aiohttp.web.json_response({"status": "ok", "added": word})
 
 
 async def handle_remove_bad_word(request):
     try:
         data = await request.json()
     except Exception:
-        return web.json_response({"error": "invalid json"}, status=400)
+        return aiohttp.web.json_response({"error": "invalid json"}, status=400)
 
     if not await _require_auth(data):
-        return web.json_response({"error": "unauthorized"}, status=401)
+        return aiohttp.web.json_response({"error": "unauthorized"}, status=401)
 
     word = (data.get("word") or "").strip()
     if not word:
-        return web.json_response({"error": "missing word"}, status=400)
+        return aiohttp.web.json_response({"error": "missing word"}, status=400)
 
     current = load_bad_words()
     new = [w for w in current if w.lower() != word.lower()]
 
     if len(new) == len(current):
-        return web.json_response({"status": "not_found"})
+        return aiohttp.web.json_response({"status": "not_found"})
 
     save_bad_words(new)
     global BAD_WORDS
     BAD_WORDS = new
 
-    return web.json_response({"status": "ok", "removed": word})
+    return aiohttp.web.json_response({"status": "ok", "removed": word})
 
 
-@web.middleware
+@aiohttp.web.middleware
 async def cors_middleware(request, handler):
     # Simple permissive CORS for the admin endpoints. Adjust if you need stricter policy.
     if request.method == 'OPTIONS':
@@ -1213,7 +1213,7 @@ async def cors_middleware(request, handler):
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
-        return web.Response(status=200, headers=headers)
+        return aiohttp.web.Response(status=200, headers=headers)
 
     resp = await handler(request)
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -1221,15 +1221,15 @@ async def cors_middleware(request, handler):
 
 
 async def start_bad_words_server():
-    app = web.Application(middlewares=[cors_middleware])
+    app = aiohttp.web.Application(middlewares=[cors_middleware])
     app.router.add_get('/badwords', handle_list_bad_words)
     app.router.add_get('/badwords/list', handle_list_bad_words)
     app.router.add_post('/badwords/add', handle_add_bad_word)
     app.router.add_post('/badwords/remove', handle_remove_bad_word)
 
-    runner = web.AppRunner(app)
+    runner = aiohttp.web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, BAD_WORDS_HOST, BAD_WORDS_PORT)
+    site = aiohttp.web.TCPSite(runner, BAD_WORDS_HOST, BAD_WORDS_PORT)
     await site.start()
 
     logging.info(f"Bad words admin HTTP server started on {BAD_WORDS_HOST}:{BAD_WORDS_PORT}")

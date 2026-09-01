@@ -1017,64 +1017,25 @@ SAVOLLAR = [
     "🧵 Odam o'zini tasvir qilishda qanchalik so'zlardan foydalanadi?"
 ]
 
-# BAD WORDS: loadable from bad_words.txt so frontend can POST updates
+# ==========================================
+# BAD WORDS SOZLAMALARI VA FAYLLAR
+# ==========================================
+
 BAD_WORDS_FILE = os.path.join(os.path.dirname(__file__), "bad_words.txt")
+WARNING_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "warning_word.jpg") # Taqiqlangan so'z uchun rasm
 
 DEFAULT_BAD_WORDS = [
-    "ahmoq",
-    "zb",
-    "axmoq",
-    "dalbayob",
-    "poxoy",
-    "dnx",
-    "ph",
-    "dapa",
-    "dappa",
-    "jinni",
-    "jalab",
-    "lox",
-    "tentak",
-    "yban",
-    "yiban",
-    "gandon",
-    "гандон",
-    "гей",
-    "далбаеб",
-    "далбаёб",
-    "ебан",
-    "ебать",
-    "жалаб",
-    "лохсан",
-    "пидр",
-    "спам",
-    "сука",
-    "сикай",
-    "тупой",
-    "хакерлик",
-    "хароми",
-    "чит борми",
-    ".onion",
-    "18+",
-    "porno",
-    "sex",
-    "fock",
-    "f*ck",
-    "f u c k",
-    "kot",
-    "ko't",
-    "neger",
-    "시발",
-    "https://youtube.com/@artijon",
-    "https://t.me/artijonuzb",
-    "porn.hub",
+    "ahmoq", "zb", "axmoq", "dalbayob", "poxoy", "dnx", "ph", "dapa", "dappa", 
+    "jinni", "jalab", "lox", "tentak", "yban", "yiban", "gandon", "гандон", 
+    "гей", "далбаеб", "далбаёб", "ебан", "ебать", "жалаб", "лохсан", "пидр", 
+    "спам", "сука", "сикай", "тупой", "хакерлик", "хароми", "чит борми", 
+    ".onion", "18+", "porno", "sex", "fock", "f*ck", "f u c k", "kot", "ko't", 
+    "neger", "시발", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub"
 ]
 
-# Manual user exceptions for link blocking: add user ID or @username here.
-# Example: "123456789", "@artijon", "artijon"
 MANUAL_LINK_BLOCKED_USERS = {
     "5144283333",
 }
-
 
 def is_manual_link_blocked_user(message: types.Message) -> bool:
     if not message.from_user:
@@ -1091,9 +1052,7 @@ def is_manual_link_blocked_user(message: types.Message) -> bool:
     }
     return bool(candidates & normalized)
 
-
 def load_bad_words():
-    # Returns a list of words loaded from the file; if file missing, create from defaults
     words = []
     if os.path.exists(BAD_WORDS_FILE):
         try:
@@ -1114,7 +1073,6 @@ def load_bad_words():
         except Exception as e:
             logging.error(f"bad_words: error creating file: {e}")
 
-    # Deduplicate while preserving order
     seen = set()
     dedup = []
     for w in words:
@@ -1125,7 +1083,6 @@ def load_bad_words():
 
     return dedup
 
-
 def save_bad_words(words):
     try:
         with open(BAD_WORDS_FILE, "w", encoding="utf-8") as f:
@@ -1134,23 +1091,69 @@ def save_bad_words(words):
     except Exception as e:
         logging.error(f"bad_words: error saving file: {e}")
 
-
 BAD_WORDS = load_bad_words()
 
-# HTTP admin settings for managing the bad words list from the website
+# ==========================================
+# TAQIQLANGAN SO'ZLARNI USHLASH VA RASM YUBORISH (HANDLER)
+# ==========================================
+
+@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+async def check_bad_words_handler(message: types.Message):
+    if not message.text:
+        return
+
+    text_lower = message.text.lower()
+    
+    # Matn ichida taqiqlangan so'zlardan biri bor-yo'qligini tekshirish
+    has_bad_word = any(bad_word.lower() in text_lower for bad_word in BAD_WORDS)
+    
+    if has_bad_word:
+        try:
+            # 1. Haqoratomuz yoki taqiqlangan so'zli xabarni o'chirish
+            await message.delete()
+        except Exception as e:
+            logging.error(f"Xabarni o'chirishda xato (Bot administrator emasmi?): {e}")
+
+        # 2. Foydalanuvchini ogohlantirish uchun rasm va caption tayyorlash
+        user_mention = message.from_user.get_mention(as_html=True)
+        caption_text = (
+            f"⚠️ {user_mention}, iltimos, guruhda taqiqlangan soʻz ishlatmang!\n"
+            f"<i>Madaniyatli boʻling va qoidalarga rioya qiling.</i>"
+        )
+
+        try:
+            # Rasm faylini tekshirish va yuborish
+            if os.path.exists(WARNING_IMAGE_PATH):
+                photo = FSInputFile(WARNING_IMAGE_PATH)
+                await message.answer_photo(
+                    photo=photo,
+                    caption=caption_text,
+                    parse_mode="HTML"
+                )
+            else:
+                # Agar rasm fayli topilmasa, shunchaki tekstini yuborish
+                await message.answer(
+                    text=caption_text,
+                    parse_mode="HTML"
+                )
+        except Exception as e:
+            logging.error(f"Ogohlantirish rasmini yuborishda xato: {e}")
+
+
+# ==========================================
+# HTTP ADMIN SERVER (WEBSITE INTEGRATION)
+# ==========================================
+
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
 BAD_WORDS_HOST = os.getenv("BAD_WORDS_HOST", "127.0.0.1")
 BAD_WORDS_PORT = int(os.getenv("BAD_WORDS_PORT", "8080"))
-
 
 async def _require_auth(data: dict):
     token = data.get("token") if isinstance(data, dict) else None
     return token == ADMIN_TOKEN
 
-
 async def handle_list_bad_words(request):
     return web.json_response({"words": load_bad_words()})
-
 
 async def handle_add_bad_word(request):
     try:
@@ -1172,12 +1175,10 @@ async def handle_add_bad_word(request):
     current.append(word)
     save_bad_words(current)
 
-    # update in-memory
     global BAD_WORDS
     BAD_WORDS = current
 
     return web.json_response({"status": "ok", "added": word})
-
 
 async def handle_remove_bad_word(request):
     try:
@@ -1204,10 +1205,8 @@ async def handle_remove_bad_word(request):
 
     return web.json_response({"status": "ok", "removed": word})
 
-
 @web.middleware
 async def cors_middleware(request, handler):
-    # Simple permissive CORS for the admin endpoints. Adjust if you need stricter policy.
     if request.method == 'OPTIONS':
         headers = {
             'Access-Control-Allow-Origin': '*',
@@ -1219,7 +1218,6 @@ async def cors_middleware(request, handler):
     resp = await handler(request)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
-
 
 async def start_bad_words_server():
     app = web.Application(middlewares=[cors_middleware])
@@ -1234,8 +1232,6 @@ async def start_bad_words_server():
     await site.start()
 
     logging.info(f"Bad words admin HTTP server started on {BAD_WORDS_HOST}:{BAD_WORDS_PORT}")
-
-
 # =========================================================
 # HELPERS
 # =========================================================
@@ -2168,24 +2164,48 @@ async def info_command(message: types.Message):
 # BLOCKED STICKER PACKS
 # =========================================================
 
+import os
+import logging
+from aiogram import types, F
+from aiogram.types import FSInputFile
+
+# Taqiqlangan stikerlar uchun ogohlantirish rasmi
+STICKER_WARNING_IMAGE = os.path.join(os.path.dirname(__file__), "warning_sticker.jpg")
+
 @dp.message(F.sticker)
 async def blocked_sticker_listener(message: types.Message):
-
     set_name = (message.sticker.set_name or "").lower().strip()
 
     if set_name in BLOCKED_STICKER_PACKS:
-
         try:
+            # 1. Taqiqlangan stikerni o'chirish
             await message.delete()
-
-            await message.answer(
-                "🚫 Bu sticker pack taqiqlangan!"
-            )
-
         except Exception as e:
-            logging.error(
-                f"Blocked sticker delete xatosi: {e}"
-            )
+            logging.error(f"Blocked sticker delete xatosi: {e}")
+
+        # 2. Foydalanuvchini tagging qilib matn tayyorlash
+        user_mention = message.from_user.get_mention(as_html=True)
+        caption_text = (
+            f"🚫 {user_mention}, iltimos, taqiqlangan stiker pack ishlatmang!\n"
+            f"<i>Guruh qoidalariga rioya qiling.</i>"
+        )
+
+        # 3. Rasmli ogohlantirish yuborish
+        try:
+            if os.path.exists(STICKER_WARNING_IMAGE):
+                photo = FSInputFile(STICKER_WARNING_IMAGE)
+                await message.answer_photo(
+                    photo=photo,
+                    caption=caption_text,
+                    parse_mode="HTML"
+                )
+            else:
+                await message.answer(
+                    text=caption_text,
+                    parse_mode="HTML"
+                )
+        except Exception as e:
+            logging.error(f"Stiker ogohlantirishini yuborishda xato: {e}")
 
         return
 
@@ -2267,34 +2287,60 @@ async def chat_listener(message: types.Message):
     # SALOM → GURUH OWNER
     # =====================================================
 
-    if "salom" in text:
+HELLO_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "hello.jpg")
 
-        owner_name = "Owner"
+@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+async def hello_listener(message: types.Message):
+    text = message.text.lower().strip()
 
+    # Text ichida salomlashuv so'zlarini aniqlash
+    hello_keywords = ["salom", "assalomu alaykum", "salom alaykum", "privet", "hello"]
+    
+    if any(keyword in text for keyword in hello_keywords):
+        owner_name = "Guruh egasi"
+
+        # Guruh egasini (creator) topish
         try:
             admins = await message.chat.get_administrators()
-
             for admin in admins:
-
                 if admin.status == "creator":
-
                     if admin.user.username:
                         owner_name = f"@{admin.user.username}"
                     else:
                         owner_name = admin.user.full_name
-
                     break
-
         except Exception as e:
-            logging.error(
-                f"Ownerni aniqlashda xato: {e}"
-            )
+            logging.error(f"Ownerni aniqlashda xato: {e}")
 
-        await message.reply(
-            f"👀 <b>{owner_name} sizni doim eshitadi, "
-            f"bemalol gapiravering!</b> 💻😎",
-            parse_mode="HTML"
-        )
+        # Har safar tasodifiy chiqadigan boyitilgan matnlar ro'yxati
+        user_name = message.from_user.first_name
+        hello_responses = [
+            f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
+            f"👋 Assalomu alaykum, {user_name}! {owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
+            f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... Nima gaplar, {user_name}? 🎮",
+            f"🤖 Salom, {user_name}! Men <b>Curina</b>man, {owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
+            f"🔥 Ooo salom, {user_name}! {owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
+        ]
+
+        selected_caption = random.choice(hello_responses)
+
+        # Rasm bilan javob berish (fayl mavjud bo'lsa)
+        try:
+            if os.path.exists(HELLO_IMAGE_PATH):
+                photo = FSInputFile(HELLO_IMAGE_PATH)
+                await message.reply_photo(
+                    photo=photo,
+                    caption=selected_caption,
+                    parse_mode="HTML"
+                )
+            else:
+                await message.reply(
+                    text=selected_caption,
+                    parse_mode="HTML"
+                )
+        except Exception as e:
+            logging.error(f"Salomlashish javobida xato: {e}")
+            await message.reply(selected_caption, parse_mode="HTML")
 
         return
 
@@ -2311,8 +2357,8 @@ async def daily_scheduler():
 
         now = datetime.now(UZ_TZ)
 
-        # Har kuni soat 20:00
-        if now.hour == 20 and now.minute == 0:
+        # Har kuni soat 07:00
+        if now.hour == 07 and now.minute == 0:
 
             current_date = now.strftime("%Y-%m-%d")
 
@@ -2388,15 +2434,71 @@ async def weekly_day_scheduler():
 
         if now.hour == 8 and now.minute == 0:
 
-            weekday_names = {
-                0: ("Dushanba", "🌅 <b>Bugun DUSHANBA!</b>\n\n📅 Yangi hafta boshlandi!\n💚 Sizga yaxshi kayfiyat, omad va muvaffaqiyat tilaymiz!\n🚀 Haftani yaxshi boshlang!\n\n🔥 Never Give Up!"),
-                1: ("Seshanba", "🔥 <b>Bugun SESHANBA!</b>\n\n💪 Haftaning davomiyligini yaxshi yo'lga qo'ying!\n📈 Har bir qadam sizga yaqinlashtiradi.\n🚀 Qolgan ishlaringni ham birma-bir qilib bering!\n\n💚 Never Give Up!"),
-                2: ("Chorshanba", "💻 <b>Bugun CHORSHANBA!</b>\n\n⚡ Haftaning o'rtasi yaqinlashdi.\n📌 Kichik ishlar ham katta natijaga olib keladi.\n🚀 Hozirgi harakatlaringizga ishoning!\n\n💚 Never Give Up!"),
-                3: ("Payshanba", "⚡ <b>Bugun PAYSHANBA!</b>\n\n🔥 Oz qoldi, kuchingizni yutqazmang!\n📈 Bir lahza to'xtab qolmasdan, davom eting.\n💪 Yaxshi natija kichik qadamlar bilan keladi!\n\n💚 Never Give Up!"),
-                4: ("Juma", "🎉 <b>Bugun JUMA!</b>\n\n✨ Haftaning eng yaxshi kuniga yaqinlashingiz kerak.\n💚 O'zingizga ijobiy hissa qoldiring.\n🚀 Qolgan vazifalarni bitiring!\n\n🔥 Never Give Up!"),
-                5: ("Shanba", "😎 <b>Bugun SHANBA!</b>\n\n💤 Dam olish va qayta quvvat olish vaqti keldi.\n🌿 O'zingizga dam bering, lekin maqsadingizni unutmang.\n🚀 Hafta davomida o'zingizga ishontirasiz!\n\n💚 Never Give Up!"),
-                6: ("Yakshanba", "🌙 <b>Bugun YAKSHANBA!</b>\n\n🧠 Yangi hafta oldidan dam oling.\n📅 Rejalaringizni qayta ko'rib chiqing.\n💚 Keyingi haftaga kuchli boshlanish uchun tayyorgarlik ko'ring!\n\n🔥 Never Give Up!"),
-            }
+weekday_names = {
+    0: (
+        "Dushanba",
+        "🌅 <b>BUGUN DUSHANBA — YANGI HAFTA, YANGI IMKONIYATLAR!</b>\n\n"
+        "📅 Yangi ish haftasi boshlandi! O'z maqsadlaringiz sari dadil qadam tashlang.\n"
+        "✨ Qiyinchiliklardan qochmang, har bir yangi kun — yangi g'alaba demakdir.\n"
+        "💡 Siz bugun rejalashtirgan har bir ishingizni a'lo darajada bajara olasiz!\n"
+        "💚 Bugungi kuningiz omadli va unumli o'tsin!\n\n"
+        "🔥 <i>Never Give Up! Olg'a!</i>"
+    ),
+    1: (
+        "Seshanba",
+        "🔥 <b>BUGUN SESHANBA — SUR'ATNI OSHIRAMIZ!</b>\n\n"
+        "💪 Haftaning ikkinchi kuni! Hafta sur'atini pasaytirmasdan ilgariroq harakat qiling.\n"
+        "📈 Kichik bo'lsa ham, har kuni qo'yilgan qadam sizni buyuk natijaga yaqinlashtiradi.\n"
+        "🚀 Rejalashtirilgan ishlaringizni birma-bir va sifatli yakunlang.\n"
+        "🎯 O'zingizga bo'lgan ishonchni aslo yo'qotmang!\n\n"
+        "💚 <i>Never Give Up! G'alaba siz tomonda!</i>"
+    ),
+    2: (
+        "Chorshanba",
+        "💻 <b>BUGUN CHORSHANBA — HAFTANING SHIRIN O'RTASI!</b>\n\n"
+        "⚡ Marra sari yarim yo'l bosib o'tildi! Energiyangizni to'g'ri taqsimlang.\n"
+        "📌 Har bir kichik muvaffaqiyat buyuk marralarning poydevoridir.\n"
+        "⚙️ Ish yoki o'qishda bugun yangi g'oyalarni sinab ko'rish uchun ajoyib imkoniyat.\n"
+        "🌟 Kayfiyatingizni a'lo darajada tuting va boshqalarga ham ulashing!\n\n"
+        "💚 <i>Never Give Up! Harakatdan to'xtamang!</i>"
+    ),
+    3: (
+        "Payshanba",
+        "⚡ <b>BUGUN PAYSHANBA — MARRAGA OZ QOLDI!</b>\n\n"
+        "🔥 Ish haftasining oxirgi bosqichi yaqinlashmoqda, kuchingizni to'plang!\n"
+        "📈 To'siqlar sizni to'xtatib qolishiga yo'l qo'ymang. Intilishda davom eting.\n"
+        "💪 Kunning har bir daqiqasidan maksimal darajada unumli foydalaning.\n"
+        "🚀 Yaxshi natijalar va sabr siz kutgan omadni keltiradi!\n\n"
+        "💚 <i>Never Give Up! Oz qoldi, olg'a!</i>"
+    ),
+    4: (
+        "Juma",
+        "🎉 <b>BUGUN JUMA — HAFTANING ENG BARAQALI KUNI!</b>\n\n"
+        "✨ Haftaning eng fayzli va ajoyib kuni muborak bo'lsin!\n"
+        "💚 Barcha qilingan mehnatlar va harakatlaringiz rohatini ko'radigan kun.\n"
+        "🚀 Haftalik vazifalaringizni chiroyli yakunlang va o'zingizga yaxshi hislar ulashing.\n"
+        "🌟 Atrofdagilarga samimiyat ko'rsating va ijobiy energiya bering!\n\n"
+        "🔥 <i>Never Give Up! Ajoyib kun tilaymiz!</i>"
+    ),
+    5: (
+        "Shanba",
+        "😎 <b>BUGUN SHANBA — DAM OLISH VA RECHARGE VAQTI!</b>\n\n"
+        "💤 Og'ir haftadan so'ng nihoyat miya va tanaga dam berish vaqti keldi.\n"
+        "🌿 O'zingiz yoqtirgan hobbi, o'yinlar yoki yaqinlaringiz davrasida vaqt o'tkazing.\n"
+        "🧠 Qilgan ishlaringizni sarhisob qiling va o'zingiz bilan faxrlaning!\n"
+        "🎮 Maroqli dam oling va yangi kuch to'plang!\n\n"
+        "💚 <i>Never Give Up! Bugun faqat hordiq!</i>"
+    ),
+    6: (
+        "Yakshanba",
+        "🌙 <b>BUGUN YAKSHANBA — YANGI ZAFARLARGA TAYYORGARLIK!</b>\n\n"
+        "🧠 Yana bir ajoyib dam olish kuni. Kelasi hafta uchun rejalarni tartiblang.\n"
+        "📅 O'zingizni ruhiy va jismoniy tomondan yangi haftaga sozlang.\n"
+        "💚 O'zingiz va oilangiz uchun vaqt ajrating, quvvatlanib oling!\n"
+        "🔥 Yangi haftada sizni bundan ham katta g'alabalar kutmoqda!\n\n"
+        "🔥 <i>Never Give Up! Yangi haftada ko'rishguncha!</i>"
+    )
+}
 
             today_name, message_text = weekday_names.get(now.weekday(), ("Kun", "💚 Never Give Up!"))
             current = now.strftime("%Y-%m-%d")

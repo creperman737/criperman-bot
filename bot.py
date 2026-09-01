@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiohttp import web
-
+from aiogram.types import FSInputFile, URLInputFile
 # =========================================================
 # CONFIG
 # =========================================================
@@ -58,6 +58,7 @@ BLOCKED_STICKER_PACKS = {
     "plsmykiss",
     "hentsbor_by_fStikBot",
     "HANGSEED_Emoji2",
+    "MurodjongaTegishliNothing035",
 }
 
 
@@ -1342,26 +1343,66 @@ def set_user_link_block(chat_id: int, user_id: int, blocked: bool):
 
 # Balanced element system - each element beats 3 and loses to 3
 ELEMENTS = {
-    "🔥 Olov": {"beats": ["🌳 Daraxt", "🧊 Muz", "🌙 Oy"]},
-    "💧 Suv": {"beats": ["🔥 Olov", "🏜️ Qum", "⚙️ Metall"]},
-    "⚡ Chaqmoq": {"beats": ["💧 Suv", "🌪️ Shamol", "🍃 Bargli"]},
-    "🌪️ Shamol": {"beats": ["⚡ Chaqmoq", "🌋 Lava", "🪨 Tosh"]},
-    "🌋 Lava": {"beats": ["🌪️ Shamol", "⚙️ Metall", "🍃 Bargli"]},
-    "🪨 Tosh": {"beats": ["🌋 Lava", "💡 Nur", "💧 Suv"]},
-    "⚙️ Metall": {"beats": ["🪨 Tosh", "⚡ Chaqmoq", "☀️ Quyosh"]},
-    "💡 Nur": {"beats": ["⚙️ Metall", "🌑 Soya", "🧊 Muz"]},
-    "🌑 Soya": {"beats": ["💡 Nur", "☀️ Quyosh", "🌳 Daraxt"]},
-    "🧊 Muz": {"beats": ["🌑 Soya", "🍃 Bargli", "🔥 Olov"]},
-    "🌙 Oy": {"beats": ["🧊 Muz", "🌳 Daraxt", "💡 Nur"]},
-    "☀️ Quyosh": {"beats": ["🌙 Oy", "🌳 Daraxt", "⚡ Chaqmoq"]},
-    "🏜️ Qum": {"beats": ["☀️ Quyosh", "🌪️ Shamol", "⚙️ Metall"]},
-    "🍃 Bargli": {"beats": ["🏜️ Qum", "🔥 Olov", "🌑 Soya"]},
-    "🌳 Daraxt": {"beats": ["🍃 Bargli", "🌑 Soya", "🌋 Lava"]},
-    "💨 Tutun": {"beats": ["🌪️ Shamol", "🧊 Muz", "💡 Nur"]},
-    "💎 Kristall": {"beats": ["💨 Tutun", "☀️ Quyosh", "🌋 Lava"]},
-    "🟤 Loy": {"beats": ["💎 Kristall", "💧 Suv", "🌪️ Shamol"]},
-    "⛈️ Firtina": {"beats": ["🟤 Loy", "⚙️ Metall", "🔥 Olov"]},
-    "⭐ Yulduz": {"beats": ["⛈️ Firtina", "🧊 Muz", "🌑 Soya"]},
+    "🔥 Olov": {
+        "beats": ["🌳 Daraxt", "🧊 Muz", "🍃 Bargli"]
+    },
+    "💧 Suv": {
+        "beats": ["🔥 Olov", "⏳ Lava", "🪵 Loy"]
+    },
+    "⚡ Chaqmoq": {
+        "beats": ["💧 Suv", "⚙️ Metall", "🌩️ Firtina"]
+    },
+    "🌪️ Shamol": {
+        "beats": ["🌫️ Tutun", "🔥 Olov", "🍃 Bargli"]
+    },
+    "⏳ Lava": {
+        "beats": ["🪨 Tosh", "🧊 Muz", "⚙️ Metall"]
+    },
+    "🪨 Tosh": {
+        "beats": ["🔥 Olov", "⚡ Chaqmoq", "🧊 Muz"]
+    },
+    "⚙️ Metall": {
+        "beats": ["🪨 Tosh", "🌳 Daraxt", "💎 Kristall"]
+    },
+    "💡 Nur": {
+        "beats": ["🌑 Soya", "🌫️ Tutun", "🧊 Muz"]
+    },
+    "🌑 Soya": {
+        "beats": ["🌙 Oy", "💎 Kristall", "🧠 Savol"] # Qorong'ulik va sirli elementlar
+    },
+    "🧊 Muz": {
+        "beats": ["💧 Suv", "🍃 Bargli", "🌳 Daraxt"]
+    },
+    "🌙 Oy": {
+        "beats": ["💡 Nur", "☀️ Quyosh", "🌟 Yulduz"] # Tungi osmon ustunligi
+    },
+    "☀️ Quyosh": {
+        "beats": ["🌑 Soya", "🧊 Muz", "🌙 Oy"]
+    },
+    "📦 Qum": {
+        "beats": ["🔥 Olov", "💧 Suv", "⚡ Chaqmoq"] # Qum olov va suvni ko'madi, tokni o'tkazmaydi
+    },
+    "🍃 Bargli": {
+        "beats": ["📦 Qum", "💧 Suv", "🪵 Loy"]
+    },
+    "🌳 Daraxt": {
+        "beats": ["📦 Qum", "🪨 Tosh", "🪵 Loy"] # Ildizlari bilan tuproq/toshni yoradi
+    },
+    "🌫️ Tutun": {
+        "beats": ["💡 Nur", "☀️ Quyosh", "🍃 Bargli"] # Quyosh nurini to'sadi, o'simlikni bo'g'adi
+    },
+    "💎 Kristall": {
+        "beats": ["💡 Nur", "⚡ Chaqmoq", "🔥 Olov"] # Nurni qaytaradi, tok va issiqqa chidamli
+    },
+    "🪵 Loy": {
+        "beats": ["🔥 Olov", "📦 Qum", "💎 Kristall"]
+    },
+    "🌩️ Firtina": {
+        "beats": ["🌳 Daraxt", "🌪️ Shamol", "📦 Qum"]
+    },
+    "🌟 Yulduz": {
+        "beats": ["🌑 Soya", "🌫️ Tutun", "🌩️ Firtina"]
+    }
 }
 
 # Game sessions storage
@@ -1488,16 +1529,16 @@ async def start_command(message: types.Message):
     save_group(message.chat.id)
 
     await message.answer(
-        "🤖 <b>Criperman Bot</b>ga xush kelibsiz!\n\n"
-        "👋 Welcome\n"
-        "🔥 /battle — Element Battle o'yni\n"
-        "🎂 Birthday\n"
-        "🏆 /top\n"
-        "👥 /count\n"
-        "🎁 /danat\n"
-        "ℹ️ /info\n"
-        "📖 /help\n\n"
-        "💚 Never Give Up!",
+        "🤖 <b>curinasan bot</b>ga xush kelibsiz!\n\n"
+        "👋guruhizga qoshsayiz odamlar qoshilsa Welcome matnini chiqaradi\n"
+        "🎮/battle tosh qaychi qogoz oyinini antiqa va ajoyib qolingani o'ynab ko'ring\n"
+        "🎂 /birthday kk.oo buyrugi bilanguruhdagi odam tugulgan kuni eslab qolib oshakuni tabrikladi \n"
+        "🏆 /top kim ko'p odam qoshganini top 10taligini qiladiz\n"
+        "👥 /count siz nechta odam qoshganizni aytadi\n"
+        "🎁 /danat bot qolab quvatlash uchun danat qilsayiz bo'ladi\n"
+        "ℹ️ /info bot haqida qisqa malumat\n"
+        "📖 /help barcha buyruqlar qanday ishlashini ko'rsatadi\n\n"
+        "💚 Never Give Up! hech qachon tashlim bolmang",
         parse_mode="HTML"
     )
 
@@ -1510,22 +1551,18 @@ async def start_command(message: types.Message):
 async def help_command(message: types.Message):
 
     await message.answer(
-        "📖 <b>Criperman Bot buyruqlari</b>\n\n"
-        "🔥 /battle — Element Battle o'yni\n"
+        "📖 <b>curinasan Boti buyruqlari nimalar qila oladi</b>\n\n"
         "🎂 /birthday 15.08 — tug'ilgan kunni saqlash\n"
         "🎈 /mybirthday — tug'ilgan kuningizni ko'rish\n"
         "🗑️ /delbirthday — tug'ilgan kunni o'chirish\n"
-        "🏆 /top — TOP 10 odam qo'shganlar\n"
+        "🏆 /top — TOP 10 odam qo'shganlarni korsatadi\n"
         "👥 /count — nechta odam qo'shganingizni ko'rish\n"
-        "🎁 /danat — donate qilish\n"
-        "📺 /channels — guruhga mos kanallar\n"
-        "🔗 /link @username — link yuborishni taqiqlash\n"
-        "🔓 /unlink @username — taqiqni olib tashlash\n"
-        "🌟 /text — random splash text\n"
+        "🎁 /danat — donate bilan qolab quvatlagiz kelsa botni shu buyruqni ishlating\n"
+        "🌟 /text — bu buyruq bilan antiqa gaplar va hazil uchun yozilgan so'zlarni chiqar tirsayiz bo'ladi faqat random\n"
         "🧠 /savol — random hayot savoli\n"
-        "🆔 /id — Telegram ID\n"
         "📊 /stats — guruh statistikasi\n"
-        "ℹ️ /info — bot haqida\n"
+        "ℹ️ /info — bot haqida qisqacha\n"
+        "🎮 /battle bu byruq bilan tosh qaychi qogoz oyinini yangicha versionnini oynay qolasiz sinab ko'ring\n"
         "📖 /help — buyruqlar ro'yxati",
         parse_mode="HTML"
     )
@@ -1617,7 +1654,7 @@ async def savol_command(message: types.Message):
     question = random.choice(SAVOLLAR)
 
     await message.answer(
-        "🧠 <b>Bugungi savol:</b>\n\n"
+        "🧠 <b>savol:</b>\n\n"
         + question,
         parse_mode="HTML"
     )
@@ -1682,7 +1719,7 @@ async def channels_command(message: types.Message):
 
     if not channels:
         await message.answer(
-            "📺 Bu guruh uchun hali kanallar sozlanmagan."
+            "📺 Bu guruh uchun hali kanallar sozlanmagan. agar sozlashni hoxlasayiz @criperman_admin shu odamga kanaliz guruhizni linkini va kanallarizni lekinkini yozib qoldring"
         )
         return
 
@@ -1698,64 +1735,76 @@ async def channels_command(message: types.Message):
 # WELCOME
 # =========================================================
 
+WELCOME_IMAGE_PATH = "welcome.jpg"  # loyihangiz papkasidagi rasm fayli
+
 @dp.message(F.new_chat_members)
 async def welcome_new_members(message: types.Message):
-
     save_group(message.chat.id)
 
     for member in message.new_chat_members:
 
-        # Begona bot
+        # 1. Begona botlarni avtomatik ban qilish
         if member.is_bot:
-
             if member.id != bot.id:
-
                 try:
                     await bot.ban_chat_member(
-                        message.chat.id,
-                        member.id
+                        chat_id=message.chat.id,
+                        user_id=member.id
                     )
-
                     await message.answer(
                         f"🤖 {member.full_name} bot edi.\n"
                         f"🛡 Guruhga begona bot kiritilmaydi."
                     )
-
                 except Exception as e:
-                    logging.error(
-                        f"Botni chiqarishda xato: {e}"
-                    )
-
+                    logging.error(f"Botni chiqarishda xato: {e}")
             continue
 
+        # 2. Foydalanuvchi nomini shakllantirish
         username = (
             f"@{member.username}"
             if member.username
             else member.full_name
         )
 
+        # 3. Kengaytirilgan tasodifiy xabarlar ro'yxati
         welcome_messages = [
             f"👋 Xush kelibsiz, {username}!",
             f"🎉 {username} guruhimizga qo'shildi!",
             f"💚 Xush kelibsiz, {username}! Never Give Up!",
-            f"🎮 {username}, Minecraft chatimizga xush kelibsiz!",
-            f"🔥 {username} ham bizga qo'shildi!"
+            f"🎮 {username}, gaming chatimizga xush kelibsiz!",
+            f"🔥 {username} ham bizga qo'shildi!",
+            f"✨ Ooo, tarkibimizga yangi a'zo: {username}! Xush kelibsiz!",
+            f"🚀 {username} saflarimizga qo'shildi. Chat endi yanada faolroq bo'ladi!",
+            f"👑 {username}, chatimizga xush kelibsiz! O'zingizni uyingizdagidek his qiling.",
+            f"👾 Yangi o'yinchi paydo bo'ldi: {username}! Tayyormisiz?",
+            f"🌟 {username} keldi! Guruhimizga xush kelibsiz!",
+            f"🎯 {username}, jamoadoshlar safiga xush kelibsiz!",
+            f"💬 {username}, do'stlar davrasiga xush kelibsiz! Faol bo'ling va suhbatga qo'shiling!"
         ]
 
-        await message.answer(
-            random.choice(welcome_messages)
-        )
+        caption_text = random.choice(welcome_messages)
 
-        # Kimdir odam qo'shgan bo'lsa hisoblash
+        # 4. Rasm va matnni birga yuborish
+        try:
+            # Agar rasm fayli mavjud bo'lsa, rasmli yuboradi
+            photo = FSInputFile(WELCOME_IMAGE_PATH)
+            await message.answer_photo(
+                photo=photo,
+                caption=caption_text
+            )
+        except Exception as e:
+            # Rasm yuklashda muammo bo'lsa, oddiy matnning o'zini yuboradi
+            logging.error(f"Welcome rasmini yuborishda xato: {e}")
+            await message.answer(caption_text)
+
+        # 5. Odam qo'shgan foydalanuvchini hisoblash (Invites DB)
         inviter = message.from_user
 
         if inviter and inviter.id != member.id:
-
             cursor.execute(
                 "SELECT count FROM invites WHERE user_id=?",
                 (inviter.id,)
             )
-
             row = cursor.fetchone()
 
             new_count = (row[0] if row else 0) + 1
@@ -1771,7 +1820,6 @@ async def welcome_new_members(message: types.Message):
             ))
 
             db.commit()
-
 
 # =========================================================
 # BIRTHDAY SET

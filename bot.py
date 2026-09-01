@@ -2358,7 +2358,7 @@ async def daily_scheduler():
         now = datetime.now(UZ_TZ)
 
         # Har kuni soat 07:00
-        if now.hour == 07 and now.minute == 0:
+        if now.hour == 7 and now.minute == 0:
 
             current_date = now.strftime("%Y-%m-%d")
 

@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
-from aiogram.exceptions import SkipHandler
 from aiohttp import web
 from aiogram.types import FSInputFile, URLInputFile
 # =========================================================

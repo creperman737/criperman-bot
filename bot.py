@@ -1337,102 +1337,59 @@ def set_user_link_block(chat_id: int, user_id: int, blocked: bool):
 # ELEMENT BATTLE GAME
 # =========================================================
 
-# Balanced element system - each element beats 3 and loses to 3
 ELEMENTS = {
-    "🔥 Olov": {
-        "beats": ["🌳 Daraxt", "🧊 Muz", "🍃 Bargli"]
-    },
-    "💧 Suv": {
-        "beats": ["🔥 Olov", "⏳ Lava", "🪵 Loy"]
-    },
-    "⚡ Chaqmoq": {
-        "beats": ["💧 Suv", "⚙️ Metall", "🌩️ Firtina"]
-    },
-    "🌪️ Shamol": {
-        "beats": ["🌫️ Tutun", "🔥 Olov", "🍃 Bargli"]
-    },
-    "⏳ Lava": {
-        "beats": ["🪨 Tosh", "🧊 Muz", "⚙️ Metall"]
-    },
-    "🪨 Tosh": {
-        "beats": ["🔥 Olov", "⚡ Chaqmoq", "🧊 Muz"]
-    },
-    "⚙️ Metall": {
-        "beats": ["🪨 Tosh", "🌳 Daraxt", "💎 Kristall"]
-    },
-    "💡 Nur": {
-        "beats": ["🌑 Soya", "🌫️ Tutun", "🧊 Muz"]
-    },
-    "🌑 Soya": {
-        "beats": ["🌙 Oy", "💎 Kristall", "🧠 Savol"] # Qorong'ulik va sirli elementlar
-    },
-    "🧊 Muz": {
-        "beats": ["💧 Suv", "🍃 Bargli", "🌳 Daraxt"]
-    },
-    "🌙 Oy": {
-        "beats": ["💡 Nur", "☀️ Quyosh", "🌟 Yulduz"] # Tungi osmon ustunligi
-    },
-    "☀️ Quyosh": {
-        "beats": ["🌑 Soya", "🧊 Muz", "🌙 Oy"]
-    },
-    "📦 Qum": {
-        "beats": ["🔥 Olov", "💧 Suv", "⚡ Chaqmoq"] # Qum olov va suvni ko'madi, tokni o'tkazmaydi
-    },
-    "🍃 Bargli": {
-        "beats": ["📦 Qum", "💧 Suv", "🪵 Loy"]
-    },
-    "🌳 Daraxt": {
-        "beats": ["📦 Qum", "🪨 Tosh", "🪵 Loy"] # Ildizlari bilan tuproq/toshni yoradi
-    },
-    "🌫️ Tutun": {
-        "beats": ["💡 Nur", "☀️ Quyosh", "🍃 Bargli"] # Quyosh nurini to'sadi, o'simlikni bo'g'adi
-    },
-    "💎 Kristall": {
-        "beats": ["💡 Nur", "⚡ Chaqmoq", "🔥 Olov"] # Nurni qaytaradi, tok va issiqqa chidamli
-    },
-    "🪵 Loy": {
-        "beats": ["🔥 Olov", "📦 Qum", "💎 Kristall"]
-    },
-    "🌩️ Firtina": {
-        "beats": ["🌳 Daraxt", "🌪️ Shamol", "📦 Qum"]
-    },
-    "🌟 Yulduz": {
-        "beats": ["🌑 Soya", "🌫️ Tutun", "🌩️ Firtina"]
-    }
+    "🔥 Olov": {"beats": ["🌳 Daraxt", "🧊 Muz", "🍃 Bargli"]},
+    "💧 Suv": {"beats": ["🔥 Olov", "⏳ Lava", "🪵 Loy"]},
+    "⚡ Chaqmoq": {"beats": ["💧 Suv", "⚙️ Metall", "🌩️ Firtina"]},
+    "🌪️ Shamol": {"beats": ["🌫️ Tutun", "🔥 Olov", "🍃 Bargli"]},
+    "⏳ Lava": {"beats": ["🪨 Tosh", "🧊 Muz", "⚙️ Metall"]},
+    "🪨 Tosh": {"beats": ["🔥 Olov", "⚡ Chaqmoq", "🧊 Muz"]},
+    "⚙️ Metall": {"beats": ["🪨 Tosh", "🌳 Daraxt", "💎 Kristall"]},
+    "💡 Nur": {"beats": ["🌑 Soya", "🌫️ Tutun", "🧊 Muz"]},
+    "🌑 Soya": {"beats": ["🌙 Oy", "💎 Kristall", "🧠 Savol"]},
+    "🧊 Muz": {"beats": ["💧 Suv", "🍃 Bargli", "🌳 Daraxt"]},
+    "🌙 Oy": {"beats": ["💡 Nur", "☀️ Quyosh", "🌟 Yulduz"]},
+    "☀️ Quyosh": {"beats": ["🌑 Soya", "🧊 Muz", "🌙 Oy"]},
+    "📦 Qum": {"beats": ["🔥 Olov", "💧 Suv", "⚡ Chaqmoq"]},
+    "🍃 Bargli": {"beats": ["📦 Qum", "💧 Suv", "🪵 Loy"]},
+    "🌳 Daraxt": {"beats": ["📦 Qum", "🪨 Tosh", "🪵 Loy"]},
+    "🌫️ Tutun": {"beats": ["💡 Nur", "☀️ Quyosh", "🍃 Bargli"]},
+    "💎 Kristall": {"beats": ["💡 Nur", "⚡ Chaqmoq", "🔥 Olov"]},
+    "🪵 Loy": {"beats": ["🔥 Olov", "📦 Qum", "💎 Kristall"]},
+    "🌩️ Firtina": {"beats": ["🌳 Daraxt", "🌪️ Shamol", "📦 Qum"]},
+    "🌟 Yulduz": {"beats": ["🌑 Soya", "🌫️ Tutun", "🌩️ Firtina"]}
 }
 
-# Game sessions storage
 game_sessions = {}
-
 
 def create_element_buttons():
     """Create inline keyboard buttons for all elements"""
     buttons = []
     elements_list = list(ELEMENTS.keys())
     
-    # Create 4 rows with 5 buttons each (20 total)
+    # 4 rows with 5 buttons each (20 total)
     for i in range(0, len(elements_list), 5):
         row = []
         for j in range(5):
             if i + j < len(elements_list):
                 element = elements_list[i + j]
+                # Index orqali callback data yuboriladi (uzunlik va xatoliklarni oldini olish uchun)
                 row.append(
                     types.InlineKeyboardButton(
                         text=element,
-                        callback_data=f"battle_{element.split()[1]}"
+                        callback_data=f"battle_idx_{i+j}"
                     )
                 )
         buttons.append(row)
     
     return types.InlineKeyboardMarkup(inline_keyboard=buttons)
 
-
+# Guruhlar va shaxsiy chatlarda /battle buyrug'ini qabul qilish
 @dp.message(Command("battle"))
 async def battle_command(message: types.Message):
     """Start an Element Battle game"""
     user_id = message.from_user.id
     
-    # Create game session
     game_sessions[user_id] = {
         "status": "waiting_for_choice",
         "message_id": None
@@ -1442,63 +1399,52 @@ async def battle_command(message: types.Message):
     
     sent_message = await message.answer(
         "🔥 <b>ELEMENT BATTLE</b> 🔥\n\n"
-        "🎮 O'z unsuringizni tanlang:\n\n"
-        "<i>Har bir unsur boshqasindan quvvatli, boshqasidan zaif.</i>",
+        f"👤 <b>{message.from_user.full_name}</b>, o'z unsuringizni tanlang:\n\n"
+        "<i>Har bir unsur boshqasidan quvvatli, boshqasidan zaif.</i>",
         parse_mode="HTML",
         reply_markup=keyboard
     )
     
     game_sessions[user_id]["message_id"] = sent_message.message_id
 
-
-@dp.callback_query(lambda query: query.data.startswith("battle_"))
+# F.data.startswith usuli bilan callback-ni ushlash
+@dp.callback_query(F.data.startswith("battle_idx_"))
 async def process_battle(query: types.CallbackQuery):
     """Process element selection and determine winner"""
     user_id = query.from_user.id
     
-    # Get the element code (last part of callback data)
-    element_name_part = query.data.replace("battle_", "")
-    
-    # Find the full element name
-    user_element = None
-    for elem in ELEMENTS.keys():
-        if elem.split()[1] == element_name_part:
-            user_element = elem
-            break
-    
-    if not user_element:
-        await query.answer("❌ Unsur topilmadi!", show_alert=True)
+    # Index orqali tanlangan unsurni aniqlash
+    try:
+        elem_idx = int(query.data.replace("battle_idx_", ""))
+        user_element = list(ELEMENTS.keys())[elem_idx]
+    except Exception as e:
+        await query.answer("❌ Unsur topilmadi yoki xatolik yuz berdi!", show_alert=True)
         return
-    
-    # Bot chooses random element
+
+    # Bot random unsurni tanlaydi
     bot_element = random.choice(list(ELEMENTS.keys()))
     
-    # Determine result
+    # Natijani hisoblash
     if user_element == bot_element:
         result = "🤝 DURANG!"
-        result_emoji = "🤝"
         result_text = "Ikkalangiz ham bir xil unsur tanladingiz!"
     elif bot_element in ELEMENTS[user_element]["beats"]:
-        result = "🏆 SIZNING G'ALIBI!"
-        result_emoji = "🏆"
-        result_text = f"{user_element} {bot_element}ni yutdi!"
+        result = "🏆 SIZ G'ALABA QOZONDINGIZ!"
+        result_text = f"<b>{user_element}</b> ➡️ <b>{bot_element}</b>ni mag'lub etdi!"
     else:
-        result = "💀 SIZNING MAGLUBIYTINGIZ!"
-        result_emoji = "💀"
-        result_text = f"{bot_element} {user_element}ni yutdi!"
+        result = "💀 MAG'LUBIYAT!"
+        result_text = f"<b>{bot_element}</b> ➡️ <b>{user_element}</b>ni mag'lub etdi!"
     
-    # Build result message
     result_message = (
         f"⚔️ <b>JANG BOSHLANDI!</b>\n\n"
-        f"👤 <b>Siz:</b> {user_element}\n"
+        f"👤 <b>Siz ({query.from_user.first_name}):</b> {user_element}\n"
         f"🤖 <b>Curina Bot:</b> {bot_element}\n\n"
         f"<b>{user_element} 🆚 {bot_element}</b>\n\n"
         f"<b>{result}</b>\n"
         f"<i>{result_text}</i>\n\n"
-        f"<code>/battle</code> - yana o'ynash uchun"
+        f"<code>/battle</code> - qayta o'ynash uchun"
     )
     
-    # Edit the original message with result
     try:
         await query.message.edit_text(
             result_message,
@@ -1508,13 +1454,10 @@ async def process_battle(query: types.CallbackQuery):
         logging.error(f"Error editing message: {e}")
         await query.message.answer(result_message, parse_mode="HTML")
     
-    # Clean up session
     if user_id in game_sessions:
         del game_sessions[user_id]
     
     await query.answer()
-
-
 # =========================================================
 # START
 # =========================================================

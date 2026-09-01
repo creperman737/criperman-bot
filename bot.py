@@ -1115,7 +1115,7 @@ async def check_bad_words_handler(message: types.Message):
             logging.error(f"Xabarni o'chirishda xato (Bot administrator emasmi?): {e}")
 
         # 2. Foydalanuvchini ogohlantirish uchun rasm va caption tayyorlash
-        user_mention = message.from_user.get_mention(as_html=True)
+        user_mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.full_name}</a>'
         caption_text = (
             f"⚠️ {user_mention}, iltimos, guruhda taqiqlangan soʻz ishlatmang!\n"
             f"<i>Madaniyatli boʻling va qoidalarga rioya qiling.</i>"

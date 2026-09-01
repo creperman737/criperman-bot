@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
+from aiogram.exceptions import SkipHandler
 from aiohttp import web
 from aiogram.types import FSInputFile, URLInputFile
 # =========================================================
@@ -1125,10 +1126,10 @@ def is_bad_word_present(text: str, bad_words: list) -> bool:
 # TAQIQLANGAN SO'ZLARNI USHLASH VA RASM YUBORISH (HANDLER)
 # ==========================================
 
-@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+@dp.message(F.text & ~F.text.startswith("/") & F.chat.type.in_({"group", "supergroup"}))
 async def check_bad_words_handler(message: types.Message):
     if not message.text:
-        return
+        raise SkipHandler
 
     # Matn ichida taqiqlangan so'z bor-yo'qligini yangi funksiya orqali tekshiramiz
     has_bad_word = is_bad_word_present(message.text, BAD_WORDS)
@@ -1164,6 +1165,9 @@ async def check_bad_words_handler(message: types.Message):
                 )
         except Exception as e:
             logging.error(f"Ogohlantirish rasmini yuborishda xato: {e}")
+        return
+
+    raise SkipHandler
 # ==========================================
 # HTTP ADMIN SERVER (WEBSITE INTEGRATION)
 # ==========================================
@@ -2224,6 +2228,8 @@ async def hello_listener(message: types.Message):
         except Exception as e:
             logging.error(f"Salomlashish javobida xato: {e}")
             await message.reply(selected_caption, parse_mode="HTML")
+
+    raise SkipHandler
 
 # =====================================================
 # CHAT LISTENER (TAQIQLAR VA HAVOLALAR)

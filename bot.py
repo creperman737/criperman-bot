@@ -1146,7 +1146,7 @@ async def check_bad_words_handler(message: types.Message):
 
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
 BAD_WORDS_HOST = os.getenv("BAD_WORDS_HOST", "127.0.0.1")
-BAD_WORDS_PORT = int(os.getenv("BAD_WORDS_PORT", "8080"))
+BAD_WORDS_PORT = int(os.getenv("PORT", os.getenv("BAD_WORDS_PORT", "8080")))
 
 async def _require_auth(data: dict):
     token = data.get("token") if isinstance(data, dict) else None

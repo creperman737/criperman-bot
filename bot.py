@@ -1030,7 +1030,7 @@ DEFAULT_BAD_WORDS = [
     "гей", "далбаеб", "далбаёб", "ебан", "ебать", "жалаб", "лохсан", "пидр", 
     "спам", "сука", "сикай", "тупой", "хакерлик", "хароми", "чит борми", 
     ".onion", "18+", "porno", "sex", "fock", "f*ck", "f u c k", "kot", "ko't", 
-    "neger", "시발", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub"
+    "neger", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub", "boqbek",
 ]
 
 MANUAL_LINK_BLOCKED_USERS = {
@@ -1094,6 +1094,34 @@ def save_bad_words(words):
 BAD_WORDS = load_bad_words()
 
 # ==========================================
+# TAQIQLANGAN SO'ZLARNI TEKSHIRISH FUNKSIYASI (REGEX)
+# ==========================================
+
+def is_bad_word_present(text: str, bad_words: list) -> bool:
+    """
+    Matn ichida taqiqlangan so'zlarni to'liq so'z chegarasi bo'yicha tekshirish.
+    Oddiy 'in' operatori o'rniga Regex qullanilgan.
+    """
+    text_lower = text.lower()
+    
+    for word in bad_words:
+        w_clean = word.strip().lower()
+        if not w_clean:
+            continue
+            
+        # Havola, domen va maxsus belgilardan iborat bo'lgan taqiqlarni to'g'ridan-to'g'ri tekshiramiz
+        if "http" in w_clean or "." in w_clean or "*" in w_clean or " " in w_clean or "+" in w_clean:
+            if w_clean in text_lower:
+                return True
+        else:
+            # So'z chegarasini tekshiruvchi regex (mustahkam so'zi ichidagi 'am' yoki 'ph' ushlanmaydi)
+            pattern = r'(?<!\w)' + re.escape(w_clean) + r'(?!\w)'
+            if re.search(pattern, text_lower):
+                return True
+                
+    return False
+
+# ==========================================
 # TAQIQLANGAN SO'ZLARNI USHLASH VA RASM YUBORISH (HANDLER)
 # ==========================================
 
@@ -1102,10 +1130,8 @@ async def check_bad_words_handler(message: types.Message):
     if not message.text:
         return
 
-    text_lower = message.text.lower()
-    
-    # Matn ichida taqiqlangan so'zlardan biri bor-yo'qligini tekshirish
-    has_bad_word = any(bad_word.lower() in text_lower for bad_word in BAD_WORDS)
+    # Matn ichida taqiqlangan so'z bor-yo'qligini yangi funksiya orqali tekshiramiz
+    has_bad_word = is_bad_word_present(message.text, BAD_WORDS)
     
     if has_bad_word:
         try:
@@ -1138,8 +1164,6 @@ async def check_bad_words_handler(message: types.Message):
                 )
         except Exception as e:
             logging.error(f"Ogohlantirish rasmini yuborishda xato: {e}")
-
-
 # ==========================================
 # HTTP ADMIN SERVER (WEBSITE INTEGRATION)
 # ==========================================

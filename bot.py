@@ -1391,13 +1391,11 @@ def create_element_buttons():
     buttons = []
     elements_list = list(ELEMENTS.keys())
     
-    # 4 rows with 5 buttons each (20 total)
     for i in range(0, len(elements_list), 5):
         row = []
         for j in range(5):
             if i + j < len(elements_list):
                 element = elements_list[i + j]
-                # Index orqali callback data yuboriladi (uzunlik va xatoliklarni oldini olish uchun)
                 row.append(
                     types.InlineKeyboardButton(
                         text=element,
@@ -1408,7 +1406,6 @@ def create_element_buttons():
     
     return types.InlineKeyboardMarkup(inline_keyboard=buttons)
 
-# Guruhlar va shaxsiy chatlarda /battle buyrug'ini qabul qilish
 @dp.message(Command("battle"))
 async def battle_command(message: types.Message):
     """Start an Element Battle game"""
@@ -1431,13 +1428,11 @@ async def battle_command(message: types.Message):
     
     game_sessions[user_id]["message_id"] = sent_message.message_id
 
-# F.data.startswith usuli bilan callback-ni ushlash
 @dp.callback_query(F.data.startswith("battle_idx_"))
 async def process_battle(query: types.CallbackQuery):
     """Process element selection and determine winner"""
     user_id = query.from_user.id
     
-    # Index orqali tanlangan unsurni aniqlash
     try:
         elem_idx = int(query.data.replace("battle_idx_", ""))
         user_element = list(ELEMENTS.keys())[elem_idx]
@@ -1445,10 +1440,8 @@ async def process_battle(query: types.CallbackQuery):
         await query.answer("❌ Unsur topilmadi yoki xatolik yuz berdi!", show_alert=True)
         return
 
-    # Bot random unsurni tanlaydi
     bot_element = random.choice(list(ELEMENTS.keys()))
     
-    # Natijani hisoblash
     if user_element == bot_element:
         result = "🤝 DURANG!"
         result_text = "Ikkalangiz ham bir xil unsur tanladingiz!"
@@ -2177,96 +2170,21 @@ async def blocked_sticker_listener(message: types.Message):
         return
 
 
-# =========================================================
-# SALOM
-# =========================================================
 
-@dp.message(F.text)
-async def chat_listener(message: types.Message):
-
-    if message.chat.type not in ("group", "supergroup"):
-        return
-
-    if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
-        if has_link(message.text):
-            try:
-                await message.delete()
-            except Exception:
-                pass
-        return
-
-    if is_manual_link_blocked_user(message):
-        if has_link(message.text):
-            try:
-                await message.delete()
-            except Exception:
-                pass
-        return
-
-    text = message.text.lower()
-
-    # Taqiqlangan linklarni tekshirish
-    if has_blocked_link(message.text):
-
-        try:
-            await message.delete()
-
-            await message.answer(
-                "🚫 Bu guruhda taqiqlangan link mavjud!"
-            )
-
-        except Exception as e:
-            logging.error(
-                f"Blocked link delete xatosi: {e}"
-            )
-
-        return
-
-    # Taqiqlangan so'zlarni tekshirish
-    clean_text = normalize(text)
-
-    for word in BAD_WORDS:
-
-        clean_word = normalize(word)
-
-        if not clean_word:
-            continue
-
-        pattern = r"(?<![a-z0-9])" + re.escape(clean_word) + r"(?![a-z0-9])"
-
-        if re.search(pattern, clean_text):
-
-            try:
-                await message.delete()
-
-                await message.answer(
-                    "🚫 Bu guruhda bunday kontent taqiqlangan!"
-                )
-
-            except Exception as e:
-                logging.error(
-                    f"Message delete xatosi: {e}"
-                )
-
-            return
-
-    # =====================================================
-    # SALOM → GURUH OWNER
-    # =====================================================
+# =====================================================
+# SALOM LISENER (MUSTAQIL HANDLER)
+# =====================================================
 
 HELLO_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "hello.jpg")
 
 @dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
 async def hello_listener(message: types.Message):
     text = message.text.lower().strip()
-
-    # Text ichida salomlashuv so'zlarini aniqlash
     hello_keywords = ["salom", "assalomu alaykum", "salom alaykum", "privet", "hello"]
     
     if any(keyword in text for keyword in hello_keywords):
         owner_name = "Guruh egasi"
 
-        # Guruh egasini (creator) topish
         try:
             admins = await message.chat.get_administrators()
             for admin in admins:
@@ -2279,8 +2197,7 @@ async def hello_listener(message: types.Message):
         except Exception as e:
             logging.error(f"Ownerni aniqlashda xato: {e}")
 
-        # Har safar tasodifiy chiqadigan boyitilgan matnlar ro'yxati
-        user_name = message.from_user.first_name
+        user_name = message.from_user.first_name if message.from_user else "Foydalanuvchi"
         hello_responses = [
             f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
             f"👋 Assalomu alaykum, {user_name}! {owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
@@ -2291,7 +2208,6 @@ async def hello_listener(message: types.Message):
 
         selected_caption = random.choice(hello_responses)
 
-        # Rasm bilan javob berish (fayl mavjud bo'lsa)
         try:
             if os.path.exists(HELLO_IMAGE_PATH):
                 photo = FSInputFile(HELLO_IMAGE_PATH)
@@ -2309,9 +2225,46 @@ async def hello_listener(message: types.Message):
             logging.error(f"Salomlashish javobida xato: {e}")
             await message.reply(selected_caption, parse_mode="HTML")
 
+# =====================================================
+# CHAT LISTENER (TAQIQLAR VA HAVOLALAR)
+# =====================================================
+
+@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+async def chat_listener(message: types.Message):
+
+    if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
+        if has_link(message.text):
+            try:
+                await message.delete()
+            except Exception:
+                pass
+            return
+
+    if is_manual_link_blocked_user(message):
+        if has_link(message.text):
+            try:
+                await message.delete()
+            except Exception:
+                pass
+            return
+
+    # Taqiqlangan linklarni tekshirish
+    if has_blocked_link(message.text):
+        try:
+            await message.delete()
+            await message.answer("🚫 Xabarda taqiqlangan link mavjud!")
+        except Exception as e:
+            logging.error(f"Blocked link delete xatosi: {e}")
         return
 
-
+    # Taqiqlangan so'zlarni tekshirish (Regex orqali to'g'rilangan)
+    if is_bad_word_present(message.text, BAD_WORDS):
+        try:
+            await message.delete()
+            await message.answer("🚫 Bu guruhda bunday kontent taqiqlangan!")
+        except Exception as e:
+            logging.error(f"Message delete xatosi: {e}")
+        return
 # =========================================================
 # DAILY SPLASH + AD
 # =========================================================

@@ -2425,102 +2425,93 @@ async def daily_scheduler():
 # =========================================================
 
 async def weekly_day_scheduler():
-
     last_sent = None
 
     while True:
-
         now = datetime.now(UZ_TZ)
 
         if now.hour == 8 and now.minute == 0:
-
-weekday_names = {
-    0: (
-        "Dushanba",
-        "🌅 <b>BUGUN DUSHANBA — YANGI HAFTA, YANGI IMKONIYATLAR!</b>\n\n"
-        "📅 Yangi ish haftasi boshlandi! O'z maqsadlaringiz sari dadil qadam tashlang.\n"
-        "✨ Qiyinchiliklardan qochmang, har bir yangi kun — yangi g'alaba demakdir.\n"
-        "💡 Siz bugun rejalashtirgan har bir ishingizni a'lo darajada bajara olasiz!\n"
-        "💚 Bugungi kuningiz omadli va unumli o'tsin!\n\n"
-        "🔥 <i>Never Give Up! Olg'a!</i>"
-    ),
-    1: (
-        "Seshanba",
-        "🔥 <b>BUGUN SESHANBA — SUR'ATNI OSHIRAMIZ!</b>\n\n"
-        "💪 Haftaning ikkinchi kuni! Hafta sur'atini pasaytirmasdan ilgariroq harakat qiling.\n"
-        "📈 Kichik bo'lsa ham, har kuni qo'yilgan qadam sizni buyuk natijaga yaqinlashtiradi.\n"
-        "🚀 Rejalashtirilgan ishlaringizni birma-bir va sifatli yakunlang.\n"
-        "🎯 O'zingizga bo'lgan ishonchni aslo yo'qotmang!\n\n"
-        "💚 <i>Never Give Up! G'alaba siz tomonda!</i>"
-    ),
-    2: (
-        "Chorshanba",
-        "💻 <b>BUGUN CHORSHANBA — HAFTANING SHIRIN O'RTASI!</b>\n\n"
-        "⚡ Marra sari yarim yo'l bosib o'tildi! Energiyangizni to'g'ri taqsimlang.\n"
-        "📌 Har bir kichik muvaffaqiyat buyuk marralarning poydevoridir.\n"
-        "⚙️ Ish yoki o'qishda bugun yangi g'oyalarni sinab ko'rish uchun ajoyib imkoniyat.\n"
-        "🌟 Kayfiyatingizni a'lo darajada tuting va boshqalarga ham ulashing!\n\n"
-        "💚 <i>Never Give Up! Harakatdan to'xtamang!</i>"
-    ),
-    3: (
-        "Payshanba",
-        "⚡ <b>BUGUN PAYSHANBA — MARRAGA OZ QOLDI!</b>\n\n"
-        "🔥 Ish haftasining oxirgi bosqichi yaqinlashmoqda, kuchingizni to'plang!\n"
-        "📈 To'siqlar sizni to'xtatib qolishiga yo'l qo'ymang. Intilishda davom eting.\n"
-        "💪 Kunning har bir daqiqasidan maksimal darajada unumli foydalaning.\n"
-        "🚀 Yaxshi natijalar va sabr siz kutgan omadni keltiradi!\n\n"
-        "💚 <i>Never Give Up! Oz qoldi, olg'a!</i>"
-    ),
-    4: (
-        "Juma",
-        "🎉 <b>BUGUN JUMA — HAFTANING ENG BARAQALI KUNI!</b>\n\n"
-        "✨ Haftaning eng fayzli va ajoyib kuni muborak bo'lsin!\n"
-        "💚 Barcha qilingan mehnatlar va harakatlaringiz rohatini ko'radigan kun.\n"
-        "🚀 Haftalik vazifalaringizni chiroyli yakunlang va o'zingizga yaxshi hislar ulashing.\n"
-        "🌟 Atrofdagilarga samimiyat ko'rsating va ijobiy energiya bering!\n\n"
-        "🔥 <i>Never Give Up! Ajoyib kun tilaymiz!</i>"
-    ),
-    5: (
-        "Shanba",
-        "😎 <b>BUGUN SHANBA — DAM OLISH VA RECHARGE VAQTI!</b>\n\n"
-        "💤 Og'ir haftadan so'ng nihoyat miya va tanaga dam berish vaqti keldi.\n"
-        "🌿 O'zingiz yoqtirgan hobbi, o'yinlar yoki yaqinlaringiz davrasida vaqt o'tkazing.\n"
-        "🧠 Qilgan ishlaringizni sarhisob qiling va o'zingiz bilan faxrlaning!\n"
-        "🎮 Maroqli dam oling va yangi kuch to'plang!\n\n"
-        "💚 <i>Never Give Up! Bugun faqat hordiq!</i>"
-    ),
-    6: (
-        "Yakshanba",
-        "🌙 <b>BUGUN YAKSHANBA — YANGI ZAFARLARGA TAYYORGARLIK!</b>\n\n"
-        "🧠 Yana bir ajoyib dam olish kuni. Kelasi hafta uchun rejalarni tartiblang.\n"
-        "📅 O'zingizni ruhiy va jismoniy tomondan yangi haftaga sozlang.\n"
-        "💚 O'zingiz va oilangiz uchun vaqt ajrating, quvvatlanib oling!\n"
-        "🔥 Yangi haftada sizni bundan ham katta g'alabalar kutmoqda!\n\n"
-        "🔥 <i>Never Give Up! Yangi haftada ko'rishguncha!</i>"
-    )
-}
+            weekday_names = {
+                0: (
+                    "Dushanba",
+                    "🌅 <b>BUGUN DUSHANBA — YANGI HAFTA, YANGI IMKONIYATLAR!</b>\n\n"
+                    "📅 Yangi ish haftasi boshlandi! O'z maqsadlaringiz sari dadil qadam tashlang.\n"
+                    "✨ Qiyinchiliklardan qochmang, har bir yangi kun — yangi g'alaba demakdir.\n"
+                    "💡 Siz bugun rejalashtirgan har bir ishingizni a'lo darajada bajara olasiz!\n"
+                    "💚 Bugungi kuningiz omadli va unumli o'tsin!\n\n"
+                    "🔥 <i>Never Give Up! Olg'a!</i>"
+                ),
+                1: (
+                    "Seshanba",
+                    "🔥 <b>BUGUN SESHANBA — SUR'ATNI OSHIRAMIZ!</b>\n\n"
+                    "💪 Haftaning ikkinchi kuni! Hafta sur'atini pasaytirmasdan ilgariroq harakat qiling.\n"
+                    "📈 Kichik bo'lsa ham, har kuni qo'yilgan qadam sizni buyuk natijaga yaqinlashtiradi.\n"
+                    "🚀 Rejalashtirilgan ishlaringizni birma-bir va sifatli yakunlang.\n"
+                    "🎯 O'zingizga bo'lgan ishonchni aslo yo'qotmang!\n\n"
+                    "💚 <i>Never Give Up! G'alaba siz tomonda!</i>"
+                ),
+                2: (
+                    "Chorshanba",
+                    "💻 <b>BUGUN CHORSHANBA — HAFTANING SHIRIN O'RTASI!</b>\n\n"
+                    "⚡ Marra sari yarim yo'l bosib o'tildi! Energiyangizni to'g'ri taqsimlang.\n"
+                    "📌 Har bir kichik muvaffaqiyat buyuk marralarning poydevoridir.\n"
+                    "⚙️ Ish yoki o'qishda bugun yangi g'oyalarni sinab ko'rish uchun ajoyib imkoniyat.\n"
+                    "🌟 Kayfiyatingizni a'lo darajada tuting va boshqalarga ham ulashing!\n\n"
+                    "💚 <i>Never Give Up! Harakatdan to'xtamang!</i>"
+                ),
+                3: (
+                    "Payshanba",
+                    "⚡ <b>BUGUN PAYSHANBA — MARRAGA OZ QOLDI!</b>\n\n"
+                    "🔥 Ish haftasining oxirgi bosqichi yaqinlashmoqda, kuchingizni to'plang!\n"
+                    "📈 To'siqlar sizni to'xtatib qolishiga yo'l qo'ymang. Intilishda davom eting.\n"
+                    "💪 Kunning har bir daqiqasidan maksimal darajada unumli foydalaning.\n"
+                    "🚀 Yaxshi natijalar va sabr siz kutgan omadni keltiradi!\n\n"
+                    "💚 <i>Never Give Up! Oz qoldi, olg'a!</i>"
+                ),
+                4: (
+                    "Juma",
+                    "🎉 <b>BUGUN JUMA — HAFTANING ENG BARAQALI KUNI!</b>\n\n"
+                    "✨ Haftaning eng fayzli va ajoyib kuni muborak bo'lsin!\n"
+                    "💚 Barcha qilingan mehnatlar va harakatlaringiz rohatini ko'radigan kun.\n"
+                    "🚀 Haftalik vazifalaringizni chiroyli yakunlang va o'zingizga yaxshi hislar ulashing.\n"
+                    "🌟 Atrofdagilarga samimiyat ko'rsating va ijobiy energiya bering!\n\n"
+                    "🔥 <i>Never Give Up! Ajoyib kun tilaymiz!</i>"
+                ),
+                5: (
+                    "Shanba",
+                    "😎 <b>BUGUN SHANBA — DAM OLISH VA RECHARGE VAQTI!</b>\n\n"
+                    "💤 Og'ir haftadan so'ng nihoyat miya va tanaga dam berish vaqti keldi.\n"
+                    "🌿 O'zingiz yoqtirgan hobbi, o'yinlar yoki yaqinlaringiz davrasida vaqt o'tkazing.\n"
+                    "🧠 Qilgan ishlaringizni sarhisob qiling va o'zingiz bilan faxrlaning!\n"
+                    "🎮 Maroqli dam oling va yangi kuch to'plang!\n\n"
+                    "💚 <i>Never Give Up! Bugun faqat hordiq!</i>"
+                ),
+                6: (
+                    "Yakshanba",
+                    "🌙 <b>BUGUN YAKSHANBA — YANGI ZAFARLARGA TAYYORGARLIK!</b>\n\n"
+                    "🧠 Yana bir ajoyib dam olish kuni. Kelasi hafta uchun rejalarni tartiblang.\n"
+                    "📅 O'zingizni ruhiy va jismoniy tomondan yangi haftaga sozlang.\n"
+                    "💚 O'zingiz va oilangiz uchun vaqt ajrating, quvvatlanib oling!\n"
+                    "🔥 Yangi haftada sizni bundan ham katta g'alabalar kutmoqda!\n\n"
+                    "🔥 <i>Never Give Up! Yangi haftada ko'rishguncha!</i>"
+                ),
+            }
 
             today_name, message_text = weekday_names.get(now.weekday(), ("Kun", "💚 Never Give Up!"))
             current = now.strftime("%Y-%m-%d")
 
             if current != last_sent:
-
                 groups = get_saved_groups()
 
                 for group_id in groups:
-
                     try:
                         await bot.send_message(
                             int(group_id),
-                            f"🌅 <b>Bugun {today_name.upper()}!</b>\n\n"
-                            + message_text,
+                            message_text,
                             parse_mode="HTML"
                         )
-
                     except Exception as e:
-                        logging.error(
-                            f"Weekly message {group_id} xatosi: {e}"
-                        )
+                        logging.error(f"Weekly message {group_id} xatosi: {e}")
 
                 last_sent = current
 

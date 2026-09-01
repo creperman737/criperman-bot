@@ -1039,7 +1039,7 @@ MANUAL_LINK_BLOCKED_USERS = {
 
 def is_manual_link_blocked_user(message: types.Message) -> bool:
     if not message.from_user:
-        return False
+        return True
 
     username = (message.from_user.username or "").strip().lower()
     user_id = str(message.from_user.id)

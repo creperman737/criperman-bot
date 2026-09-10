@@ -2174,62 +2174,111 @@ async def blocked_sticker_listener(message: types.Message):
 
 
 
-# =====================================================
-# SALOM LISENER (MUSTAQIL HANDLER)
+# ===# =====================================================
+# SALOM LISTENER
 # =====================================================
 
-HELLO_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "hello.jpg")
+HELLO_IMAGE_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "hello.jpg"
+)
 
-@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+@dp.message(
+    F.text,
+    F.chat.type.in_({"group", "supergroup"})
+)
 async def hello_listener(message: types.Message):
     text = message.text.lower().strip()
-    hello_keywords = ["salom", "assalomu alaykum", "salom alaykum", "privet", "hello"]
-    
-    if any(keyword in text for keyword in hello_keywords):
-        owner_name = "Guruh egasi"
 
-        try:
-            admins = await bot.get.chat_administrators()
-            for admin in admins:
-                if admin.status == "creator":
-                    if admin.user.username:
-                        owner_name = f"@{admin.user.username}"
-                    else:
-                        owner_name = admin.user.full_name
-                    break
-        except Exception as e:
-            logging.error(f"Ownerni aniqlashda xato: {e}")
+    hello_keywords = [
+        "salom",
+        "assalomu alaykum",
+        "salom alaykum",
+        "privet",
+        "hello"
+    ]
 
-        user_name = message.from_user.first_name if message.from_user else "Foydalanuvchi"
-        hello_responses = [
-            f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
-            f"👋 Assalomu alaykum, {user_name}! {owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
-            f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... Nima gaplar, {user_name}? 🎮",
-            f"🤖 Salom, {user_name}! Men <b>Curina</b>man, {owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
-            f"🔥 Ooo salom, {user_name}! {owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
-        ]
+    # Salomlashish bo'lmasa boshqa handlerlarga o'tadi
+    if not any(keyword in text for keyword in hello_keywords):
+        raise SkipHandler
 
-        selected_caption = random.choice(hello_responses)
+    # =================================================
+    # GURUH EGASINI ANIQLASH
+    # =================================================
 
-        try:
-            if os.path.exists(HELLO_IMAGE_PATH):
-                photo = FSInputFile(HELLO_IMAGE_PATH)
-                await message.reply_photo(
-                    photo=photo,
-                    caption=selected_caption,
-                    parse_mode="HTML"
-                )
-            else:
-                await message.reply(
-                    text=selected_caption,
-                    parse_mode="HTML"
-                )
-        except Exception as e:
-            logging.error(f"Salomlashish javobida xato: {e}")
-            await message.reply(selected_caption, parse_mode="HTML")
+    owner_name = "Guruh egasi"
 
+    try:
+        admins = await bot.get_chat_administrators(message.chat.id)
+
+        for admin in admins:
+            if admin.status == "creator":
+                if admin.user.username:
+                    owner_name = f"@{admin.user.username}"
+                else:
+                    owner_name = admin.user.full_name
+                break
+
+    except Exception as e:
+        logging.error(f"Ownerni aniqlashda xato: {e}")
+
+    # =================================================
+    # FOYDALANUVCHI
+    # =================================================
+
+    user_name = (
+        message.from_user.first_name
+        if message.from_user
+        else "Foydalanuvchi"
+    )
+
+    hello_responses = [
+        f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
+
+        f"👋 Assalomu alaykum, {user_name}! "
+        f"{owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
+
+        f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... "
+        f"Nima gaplar, {user_name}? 🎮",
+
+        f"🤖 Salom, {user_name}! Men <b>Curina</b>man, "
+        f"{owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
+
+        f"🔥 Ooo salom, {user_name}! "
+        f"{owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
+    ]
+
+    selected_caption = random.choice(hello_responses)
+
+    # =================================================
+    # JAVOB
+    # =================================================
+
+    try:
+        if os.path.exists(HELLO_IMAGE_PATH):
+            photo = FSInputFile(HELLO_IMAGE_PATH)
+
+            await message.reply_photo(
+                photo=photo,
+                caption=selected_caption,
+                parse_mode="HTML"
+            )
+        else:
+            await message.reply(
+                selected_caption,
+                parse_mode="HTML"
+            )
+
+    except Exception as e:
+        logging.error(f"Salomlashish javobida xato: {e}")
+
+        await message.reply(
+            selected_caption,
+            parse_mode="HTML"
+        )
+
+    # Keyingi handlerlar ham ishlashi mumkin
     raise SkipHandler
-
 # =====================================================
 # CHAT LISTENER (TAQIQLAR VA HAVOLALAR)
 # =====================================================

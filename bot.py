@@ -2189,7 +2189,7 @@ async def hello_listener(message: types.Message):
         owner_name = "Guruh egasi"
 
         try:
-            admins = await message.chat.get_administrators()
+            admins = await bot.get.chat_administrators()
             for admin in admins:
                 if admin.status == "creator":
                     if admin.user.username:

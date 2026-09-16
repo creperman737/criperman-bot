@@ -457,6 +457,8 @@ BLOCKED_STICKER_PACKS = {
     "hentsbor_by_fStikBot",
     "HANGSEED_Emoji2",
     "MurodjongaTegishliNothing035",
+    "CAACAgIAAxkBAAER6RxqqsqlBCPWU9t-K5tGX7JudPNJ2wACxVIAAjPEoUsZxLFhUy_cAAE9BA",
+    "",
 }
 
 

@@ -592,7 +592,7 @@ GROUP_CHANNELS = {
     "@verstak_uz": [
         "minecraft serverlar vazisida videolar topasiz: https://www.youtube.com/@Verstak_server_uz",
         "assoy kanalim https://www.youtube.com/@MCRetro_08",
-    ]
+    ],
         "@zafarbek_team": [
         "guruh egasini youtube kanali: https://youtube.com/@mrzafarbek?si=KUb7QCi0RoAFPgV3",
         "guruh egasini instagram kanali: https://www.instagram.com/gamer_zafarbek?stkn=bWlma254dWhuanZy",

@@ -96,7 +96,7 @@ def is_bad_word_present(text: str, bad_words: list) -> bool:
                 return True
     return False
     
-bot = Bot(TOKEN)
+
 dp = Dispatcher()
 
 @dp.message(F.sticker)

@@ -1440,7 +1440,7 @@ async def check_bad_words_handler(message: types.Message):
     if not message.text:
         return
 
-    # Matn ichida taqiqlangan so'z bor-yo'qligini yangi funksiya orqali tekshiramiz
+    # Matn ichida taqiqlangan so'z bor-yo'qligini tekshiramiz
     has_bad_word = is_bad_word_present(message.text, BAD_WORDS)
     
     if has_bad_word:
@@ -1451,7 +1451,7 @@ async def check_bad_words_handler(message: types.Message):
             logging.error(f"Xabarni o'chirishda xato (Bot administrator emasmi?): {e}")
 
         # 2. Foydalanuvchini ogohlantirish uchun rasm va caption tayyorlash
-        user_mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.full_name}</a>'
+        user_mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.full_name}</a>' if message.from_user else "Foydalanuvchi"
         caption_text = (
             f"⚠️ {user_mention}, iltimos, guruhda taqiqlangan soʻz ishlatmang!\n"
             f"<i>Madaniyatli boʻling va qoidalarga rioya qiling.</i>"
@@ -1467,13 +1467,16 @@ async def check_bad_words_handler(message: types.Message):
                     parse_mode="HTML"
                 )
             else:
-                # Agar rasm fayli topilmasa, shunchaki tekstini yuborish
+                # Agar rasm fayli topilmasa, shunchaki matn yuborish
                 await message.answer(
                     text=caption_text,
                     parse_mode="HTML"
                 )
         except Exception as e:
             logging.error(f"Ogohlantirish rasmini yuborishda xato: {e}")
+
+        # AIOGRAM 3.X DAHAS: Ishlov berishni shu joyda to'xtatamiz
+        return
 # ==========================================
 # HTTP ADMIN SERVER (WEBSITE INTEGRATION)
 # ==========================================

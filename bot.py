@@ -563,44 +563,41 @@ db.commit()
 
 
 # =========================================================
-# CHANNELS
+# CHANNELS (IXCHAM VA HTML FORMATDA)
 # =========================================================
 
 MY_CHANNELS = [
-    "💻 Dasturlash: https://www.youtube.com/@criperman_coding",
-    "👨‍👩‍👧‍👦 Asosiy kanal: https://www.youtube.com/@criperman_family",
-    "🎮 O'yinlar: https://www.youtube.com/@criperman_games",
-    "🔥 Minecraft: https://www.youtube.com/@Crimson_criperman"
+    '💻 <a href="https://www.youtube.com/@criperman_coding">Dasturlash kanali</a>',
+    '👨‍👩‍👧‍👦 <a href="https://www.youtube.com/@criperman_family">Asosiy kanal</a>',
+    '🎮 <a href="https://www.youtube.com/@criperman_games">Oʻyinlar kanali</a>',
+    '🔥 <a href="https://www.youtube.com/@Crimson_criperman">Minecraft kanali</a>',
+    '🔥 <a href="https://t.me/criperman_uz">guruh egasiga aloqa qilish uchun</a>'
 ]
 
 GROUP_CHANNELS = {
-    # Har bir guruhning public username'iga qarab kanal ro'yxatini yuboradi.
-    # Siz berilgan 3 ta guruh uchun quyidagicha sozlaysiz.
-
     "@dee_KARLUZ_GROUP": [
-        "assosy kanalim https://www.youtube.com/@deeKARL",
-        "qosimcha kanalim https://www.youtube.com/@deeKARL_story-games",
+        '🎬 <a href="https://www.youtube.com/@deeKARL">Asosiy kanalim</a>',
+        '🎮 <a href="https://www.youtube.com/@deeKARL_story-games">Qoʻshimcha kanalim</a>',
     ],
 
     "@criperman_chat": [
-        "💻 Dasturlash: https://www.youtube.com/@criperman_coding",
-        "👨‍👩‍👧‍👦 Asosiy kanal: https://www.youtube.com/@criperman_family",
-        "🎮 O'yinlar: https://www.youtube.com/@criperman_games",
-        "🔥 Minecraft: https://www.youtube.com/@Crimson_criperman",
+        '💻 <a href="https://www.youtube.com/@criperman_coding">Dasturlash kanali</a>',
+        '👨‍👩‍👧‍👦 <a href="https://www.youtube.com/@criperman_family">Asosiy kanal</a>',
+        '🎮 <a href="https://www.youtube.com/@criperman_games">Oʻyinlar kanali</a>',
+        '🔥 <a href="https://www.youtube.com/@Crimson_criperman">Minecraft kanali</a>',
     ],
 
     "@verstak_uz": [
-        "minecraft serverlar vazisida videolar topasiz: https://www.youtube.com/@Verstak_server_uz",
-        "assoy kanalim https://www.youtube.com/@MCRetro_08",
+        '⛏ <a href="https://www.youtube.com/@Verstak_server_uz">Minecraft serverlar viziti</a>',
+        '🎬 <a href="https://www.youtube.com/@MCRetro_08">Asosiy kanalim</a>',
     ],
-        "@zafarbek_team": [
-        "guruh egasini youtube kanali: https://youtube.com/@mrzafarbek?si=KUb7QCi0RoAFPgV3",
-        "guruh egasini instagram kanali: https://www.instagram.com/gamer_zafarbek?stkn=bWlma254dWhuanZy",
-        "guruh egasini lichkasi: https://t.me/Fronted_Zafarbek  "
-    ]
+
+    "@zafarbek_team": [
+        '▶️ <a href="https://youtube.com/@mrzafarbek?si=KUb7QCi0RoAFPgV3"> guruh egasini YouTube kanal</a>',
+        '📸 <a href="https://www.instagram.com/gamer_zafarbek?stkn=bWlma254dWhuanZy">guruh egasini Instagram kanali </a>',
+        '👤 <a href="https://t.me/Fronted_Zafarbek">Guruh egasi bilan aloqa</a>',
+    ],
 }
-
-
 # =========================================================
 # SPLASH TEXTS
 # =========================================================

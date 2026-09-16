@@ -458,7 +458,9 @@ BLOCKED_STICKER_PACKS = {
     "HANGSEED_Emoji2",
     "MurodjongaTegishliNothing035",
     "CAACAgIAAxkBAAER6RxqqsqlBCPWU9t-K5tGX7JudPNJ2wACxVIAAjPEoUsZxLFhUy_cAAE9BA",
-    "",
+    "CAACAgIAAxkBAAER6R5qqsqonZIsHwkipil0L-FSaxUUrgAChmUAAqxjmUvGLN3OMrKFYj0E",
+    "CAACAgIAAxkBAAER6SBqqsqqeiorPvN_B8pl6G-iic7BmQACWFoAArY9oUsF8i4Jhqe6Aj0E",
+    "CAACAgIAAxkBAAER6SJqqsqsp9fNfQykA9lC6q_fbvc5BwACTWEAAqVfmEvDP7pVWUEsnj0E",
 }
 
 

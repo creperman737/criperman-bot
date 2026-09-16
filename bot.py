@@ -99,13 +99,15 @@ def is_bad_word_present(text: str, bad_words: list) -> bool:
 bot = Bot(TOKEN)
 dp = Dispatcher()
 
-
 @dp.message(F.sticker)
 async def sticker_id(message: types.Message):
     await message.reply(
         f"file_unique_id:\n`{message.sticker.file_unique_id}`",
         parse_mode="Markdown"
     )
+
+
+# qolgan @dp.message handlerlaring shu yerdan davom etadi
 
 
 # qolgan @dp.message handlerlaring shu yerdan davom etadi

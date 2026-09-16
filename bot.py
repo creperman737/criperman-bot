@@ -1350,7 +1350,7 @@ DEFAULT_BAD_WORDS = [
     "гей", "далбаеб", "далбаёб", "ебан", "ебать", "жалаб", "лохсан", "пидр", 
     "спам", "сука", "сикай", "тупой", "хакерлик", "хароми", "чит борми", 
     ".onion", "18+", "porno", "sex", "fock", "f*ck", "f u c k", "kot", "ko't", 
-    "neger", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub", "boqbek",
+    "neger", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub", "boqbek","gey","gay","🏳️‍🌈",
 ]
 
 MANUAL_LINK_BLOCKED_USERS = {

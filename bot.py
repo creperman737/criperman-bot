@@ -1,3 +1,311 @@
+import os
+import re
+import random
+import logging
+import time
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command, CommandObject
+from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
+
+# Logging sozlamalari
+logging.basicConfig(level=logging.INFO)
+
+# ==========================================
+# FILE PATHS AND CONFIGURATION
+# ==========================================
+
+BAD_WORDS_FILE = os.path.join(os.path.dirname(__file__), "bad_words.txt")
+WARNING_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "warning_word.jpg")
+HELLO_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "hello.jpg")
+
+DEFAULT_BAD_WORDS = [
+    "ahmoq", "zb", "axmoq", "dalbayob", "poxoy", "dnx", "ph", "dapa", "dappa", 
+    "jinni", "jalab", "lox", "tentak", "yban", "yiban", "gandon", "гандон", 
+    "гей", "далбаеб", "далбаёб", "ебан", "ебать", "жалаб", "лохсан", "пидр", 
+    "спам", "сука", "сикай", "тупой", "хакерлик", "хароми", "чит борми", 
+    ".onion", "18+", "porno", "sex", "fock", "f*ck", "f u c k", "kot", "ko't", 
+    "neger", "https://youtube.com/@artijon", "https://t.me/artijonuzb", "porn.hub", "boqbek",
+]
+
+MANUAL_LINK_BLOCKED_USERS = {"5144283333"}
+
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
+
+def is_manual_link_blocked_user(message: types.Message) -> bool:
+    if not message.from_user:
+        return True
+    username = (message.from_user.username or "").strip().lower()
+    user_id = str(message.from_user.id)
+    candidates = {user_id, username, f"@{username}"}
+    normalized = {item.strip().lower() for item in MANUAL_LINK_BLOCKED_USERS if item and item.strip()}
+    return bool(candidates & normalized)
+
+def load_bad_words():
+    words = []
+    if os.path.exists(BAD_WORDS_FILE):
+        try:
+            with open(BAD_WORDS_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    w = line.strip()
+                    if w:
+                        words.append(w)
+        except Exception as e:
+            logging.error(f"bad_words: error reading file: {e}")
+            words = DEFAULT_BAD_WORDS.copy()
+    else:
+        words = DEFAULT_BAD_WORDS.copy()
+        try:
+            with open(BAD_WORDS_FILE, "w", encoding="utf-8") as f:
+                for w in words:
+                    f.write(w + "\n")
+        except Exception as e:
+            logging.error(f"bad_words: error creating file: {e}")
+
+    seen = set()
+    dedup = []
+    for w in words:
+        key = w.lower().strip()
+        if key and key not in seen:
+            seen.add(key)
+            dedup.append(w)
+    return dedup
+
+BAD_WORDS = load_bad_words()
+
+def is_bad_word_present(text: str, bad_words: list) -> bool:
+    """
+    So'zlarni to'liq so'z chegarasi (Regex) bo'yicha tekshirish.
+    'yangi', 'mustahkam' kabi toza so'zlar ichidagi harf birikmalarini o'chirmaydi.
+    """
+    text_lower = text.lower()
+    for word in bad_words:
+        w_clean = word.strip().lower()
+        if not w_clean:
+            continue
+        
+        # Havolalar va domenlar uchun oddiy qidiruv
+        if "http" in w_clean or "." in w_clean or "*" in w_clean or " " in w_clean or "+" in w_clean:
+            if w_clean in text_lower:
+                return True
+        else:
+            # Alohida so'z ekanligini aniq tekshirish
+            pattern = r'(?<!\w)' + re.escape(w_clean) + r'(?!\w)'
+            if re.search(pattern, text_lower):
+                return True
+    return False
+
+# ==========================================
+# ELEMENT BATTLE GAME LOGIC
+# ==========================================
+
+ELEMENTS = {
+    "🔥 Olov": {"beats": ["🌳 Daraxt", "🧊 Muz", "🍃 Bargli"]},
+    "💧 Suv": {"beats": ["🔥 Olov", "⏳ Lava", "🪵 Loy"]},
+    "⚡ Chaqmoq": {"beats": ["💧 Suv", "⚙️ Metall", "🌩️ Firtina"]},
+    "🌪️ Shamol": {"beats": ["🌫️ Tutun", "🔥 Olov", "🍃 Bargli"]},
+    "⏳ Lava": {"beats": ["🪨 Tosh", "🧊 Muz", "⚙️ Metall"]},
+    "🪨 Tosh": {"beats": ["🔥 Olov", "⚡ Chaqmoq", "🧊 Muz"]},
+    "⚙️ Metall": {"beats": ["🪨 Tosh", "🌳 Daraxt", "💎 Kristall"]},
+    "💡 Nur": {"beats": ["🌑 Soya", "🌫️ Tutun", "🧊 Muz"]},
+    "🌑 Soya": {"beats": ["🌙 Oy", "💎 Kristall", "🧠 Savol"]},
+    "🧊 Muz": {"beats": ["💧 Suv", "🍃 Bargli", "🌳 Daraxt"]},
+    "🌙 Oy": {"beats": ["💡 Nur", "☀️ Quyosh", "🌟 Yulduz"]},
+    "☀️ Quyosh": {"beats": ["🌑 Soya", "🧊 Muz", "🌙 Oy"]},
+    "📦 Qum": {"beats": ["🔥 Olov", "💧 Suv", "⚡ Chaqmoq"]},
+    "🍃 Bargli": {"beats": ["📦 Qum", "💧 Suv", "🪵 Loy"]},
+    "🌳 Daraxt": {"beats": ["📦 Qum", "🪨 Tosh", "🪵 Loy"]},
+    "🌫️ Tutun": {"beats": ["💡 Nur", "☀️ Quyosh", "🍃 Bargli"]},
+    "💎 Kristall": {"beats": ["💡 Nur", "⚡ Chaqmoq", "🔥 Olov"]},
+    "🪵 Loy": {"beats": ["🔥 Olov", "📦 Qum", "💎 Kristall"]},
+    "🌩️ Firtina": {"beats": ["🌳 Daraxt", "🌪️ Shamol", "📦 Qum"]},
+    "🌟 Yulduz": {"beats": ["🌑 Soya", "🌫️ Tutun", "🌩️ Firtina"]}
+}
+
+def create_element_buttons():
+    buttons = []
+    elements_list = list(ELEMENTS.keys())
+    for i in range(0, len(elements_list), 5):
+        row = []
+        for j in range(5):
+            if i + j < len(elements_list):
+                element = elements_list[i + j]
+                row.append(
+                    InlineKeyboardButton(
+                        text=element,
+                        callback_data=f"battle_idx_{i+j}"
+                    )
+                )
+        buttons.append(row)
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+# ==========================================
+# 1. COMMAND HANDLERS (Yuqori ustuvorlik)
+# ==========================================
+
+bot = None
+dp = None
+
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError("BOT_TOKEN environment variable topilmadi!")
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+@dp.message(Command("battle"))
+async def battle_command(message: types.Message):
+    keyboard = create_element_buttons()
+    await message.answer(
+        "🔥 <b>ELEMENT BATTLE</b> 🔥\n\n"
+        f"👤 <b>{message.from_user.full_name}</b>, o'z unsuringizni tanlang:\n\n"
+        "<i>Har bir unsur boshqasidan quvvatli, boshqasidan zaif.</i>",
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+@dp.callback_query(F.data.startswith("battle_idx_"))
+async def process_battle(query: types.CallbackQuery):
+    try:
+        elem_idx = int(query.data.replace("battle_idx_", ""))
+        user_element = list(ELEMENTS.keys())[elem_idx]
+    except Exception:
+        await query.answer("❌ Unsur topilmadi!", show_alert=True)
+        return
+
+    bot_element = random.choice(list(ELEMENTS.keys()))
+    
+    if user_element == bot_element:
+        result = "🤝 DURANG!"
+        result_text = "Ikkalangiz ham bir xil unsur tanladingiz!"
+    elif bot_element in ELEMENTS[user_element]["beats"]:
+        result = "🏆 SIZ G'ALABA QOZONDINGIZ!"
+        result_text = f"<b>{user_element}</b> ➡️ <b>{bot_element}</b>ni mag'lub etdi!"
+    else:
+        result = "💀 MAG'LUBIYAT!"
+        result_text = f"<b>{bot_element}</b> ➡️ <b>{user_element}</b>ni mag'lub etdi!"
+    
+    result_message = (
+        f"⚔️ <b>JANG BOSHLANDI!</b>\n\n"
+        f"👤 <b>Siz ({query.from_user.first_name}):</b> {user_element}\n"
+        f"🤖 <b>Curina Bot:</b> {bot_element}\n\n"
+        f"<b>{user_element} 🆚 {bot_element}</b>\n\n"
+        f"<b>{result}</b>\n"
+        f"<i>{result_text}</i>\n\n"
+        f"<code>/battle</code> - qayta o'ynash uchun"
+    )
+    
+    try:
+        await query.message.edit_text(result_message, parse_mode="HTML")
+    except Exception as e:
+        logging.error(f"Edit message error: {e}")
+        await query.message.answer(result_message, parse_mode="HTML")
+    
+    await query.answer()
+
+@dp.message(Command("start", "help", "info", "text", "savol"))
+async def general_commands_handler(message: types.Message, command: CommandObject):
+    cmd_name = command.command
+    args = command.args or ""
+    
+    if cmd_name == "start":
+        await message.reply("👋 Salom! Men Curina botman. Guruhda tartibni saqlashga yordam beraman.")
+    elif cmd_name == "help":
+        await message.reply("ℹ️ Bot buyruqlari:\n/battle - Elementlar jangi\n/info - Bot haqida ma'lumot")
+    elif cmd_name == "info":
+        info_text = (
+            "🤖 <b>Criperman Bot</b>\n\n"
+            "Bu bot guruhlaringizni avtomatik boshqarish uchun yaratilgan.\n\n"
+            "<b>🔰 Asosiy imkoniyatlar:</b>\n"
+            "• 👋 Yangi a'zolarni rasmli kutib olish\n"
+            "• 🛡 So'kinish va spamni avto filtrlash\n"
+            "• ⚠️ Ogohlantirish / cheklash / bloklash tizimi\n"
+            "• 📊 Guruh statistikasi va foydalanuvchi ma'lumotlari\n"
+            "• 📝 Qoidalar va admin buyruqlari\n\n"
+            "<b>📌 Botdan foydalanish:</b>\n"
+            "1. Botni guruhga qo'shing\n"
+            "2. Admin qiling\n"
+            "3. Qolganini bot o'zi qiladi!\n\n"
+            "<b>👨‍💻 Dasturchi:</b> @creperman737"
+        )
+        await message.reply(info_text, parse_mode="HTML")
+    elif cmd_name in ["text", "savol"]:
+        if not args:
+            await message.reply(f"❓ Yozish usuli: <code>/{cmd_name} savolingiz</code>")
+        else:
+            await message.reply(f"💡 Savolingiz qabul qilindi: <i>{args}</i>")
+
+# ==========================================
+# 2. SALOM LISTENER
+# ==========================================
+
+@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+async def hello_listener(message: types.Message):
+    # Buyruqlarni e'tiborsiz qoldirish
+    if message.text.startswith('/'):
+        return
+
+    text = message.text.lower().strip()
+    hello_keywords = ["salom", "assalomu alaykum", "salom alaykum", "privet", "hello"]
+    
+    if any(re.search(r'(?<!\w)' + re.escape(kw) + r'(?!\w)', text) for kw in hello_keywords):
+        owner_name = "Guruh egasi"
+
+        try:
+            admins = await message.chat.get_administrators()
+            for admin in admins:
+                if admin.status == "creator":
+                    owner_name = f"@{admin.user.username}" if admin.user.username else admin.user.full_name
+                    break
+        except Exception as e:
+            logging.error(f"Owner error: {e}")
+
+        user_name = message.from_user.first_name if message.from_user else "Foydalanuvchi"
+        hello_responses = [
+            f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
+            f"👋 Assalomu alaykum, {user_name}! {owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
+            f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... Nima gaplar, {user_name}? 🎮",
+            f"🤖 Salom, {user_name}! Men <b>Curina</b>man, {owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
+            f"🔥 Ooo salom, {user_name}! {owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
+        ]
+
+        selected_caption = random.choice(hello_responses)
+
+        try:
+            if os.path.exists(HELLO_IMAGE_PATH):
+                photo = FSInputFile(HELLO_IMAGE_PATH)
+                await message.reply_photo(photo=photo, caption=selected_caption, parse_mode="HTML")
+            else:
+                await message.reply(text=selected_caption, parse_mode="HTML")
+        except Exception as e:
+            logging.error(f"Hello error: {e}")
+            await message.reply(selected_caption, parse_mode="HTML")
+
+# ==========================================
+# 3. CHAT LISTENER (Taqiqlangan so'zlar filtri)
+# ==========================================
+
+@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+async def chat_listener(message: types.Message):
+    if message.text.startswith('/'):
+        return
+
+    # Taqiqlangan so'zlarni tekshirish
+    if is_bad_word_present(message.text, BAD_WORDS):
+        try:
+            await message.delete()
+            user_mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.full_name}</a>'
+            caption_text = f"⚠️ {user_mention}, iltimos, guruhda taqiqlangan soʻz ishlatmang!"
+            
+            if os.path.exists(WARNING_IMAGE_PATH):
+                photo = FSInputFile(WARNING_IMAGE_PATH)
+                await message.answer_photo(photo=photo, caption=caption_text, parse_mode="HTML")
+            else:
+                await message.answer(text=caption_text, parse_mode="HTML")
+        except Exception as e:
+            logging.error(f"Message delete error: {e}")
+
 import asyncio
 import logging
 import os
@@ -40,6 +348,81 @@ BLOCKED_LINK_NAMES = [
     "2no.co",
     "blasze",
     "ipgrabber",
+    "grabify.link",
+    # IP logger / Grabify xizmatlari
+    "logger.link",
+    "ip.jlynx",
+    "yip.su",
+    "ps3cfw",
+    "freegeoip",
+    "ip-api",
+    "whatsmyip",
+    "2no.co",
+    "blasze",
+    "linkify",
+    "iplis",
+    "maper.info",
+    "ezstat.ru",
+    "iplog.co",
+    "ip-tracker",
+    "iplocation",
+
+    # Qisqa URL xizmatlari
+    "bit.ly",
+    "tinyurl",
+    "shorturl",
+    "t.ly",
+    "is.gd",
+    "cutt.ly",
+    "rebrand.ly",
+    "ow.ly",
+    "short.io",
+    "rb.gy",
+    "clck.ru",
+    "gg.gg",
+    "short.link",
+
+    # Vaqtinchalik hosting va webhook xizmatlari
+    "ngrok",
+    "webhook.site",
+    "requestbin",
+    "httpbin",
+    "canarytokens",
+    "hookbin",
+    "beeceptor",
+
+    # Hosting platformalari
+    "firebaseapp",
+    "glitch.me",
+    "repl.co",
+    "herokuapp",
+    "vercel.app",
+    "netlify.app",
+    "github.io",
+    "pages.dev",
+    "workers.dev",
+    "fly.dev",
+    "railway.app",
+    "onrender.com",
+    "deno.dev",
+
+    # Soxta va phishing saytlar
+    "discörd",
+    "minecräft",
+    "rëddït",
+    "yoütu",
+    "shört",
+    "fortnight",
+    "fortnitechat",
+    "xbox.photos",
+    "xbox.clips",
+    "imagevault",
+    "freegiftcards",
+    "leancoding",
+    "spottyfly",
+    "stopify",
+    "bmwforum",
+    
 ]
 
 BLOCKED_STICKER_PACKS = {
@@ -123,7 +506,12 @@ def has_blocked_link(text: str) -> bool:
         if is_blocked_link(url):
             return True
 
-    return False
+    normalized_text = normalize_url_fragment(text)
+    return any(
+        normalize_url_fragment(blocked_name) in normalized_text
+        for blocked_name in BLOCKED_LINK_NAMES
+        if normalize_url_fragment(blocked_name)
+    )
 
 # =========================================================
 # DATABASE
@@ -204,6 +592,11 @@ GROUP_CHANNELS = {
     "@verstak_uz": [
         "minecraft serverlar vazisida videolar topasiz: https://www.youtube.com/@Verstak_server_uz",
         "assoy kanalim https://www.youtube.com/@MCRetro_08",
+    ]
+        "@zafarbek_team": [
+        "guruh egasini youtube kanali: https://youtube.com/@mrzafarbek?si=KUb7QCi0RoAFPgV3",
+        "guruh egasini instagram kanali: https://www.instagram.com/gamer_zafarbek?stkn=bWlma254dWhuanZy",
+        "guruh egasini lichkasi: https://t.me/Fronted_Zafarbek  "
     ]
 }
 
@@ -845,96 +1238,6 @@ SPLASH_TEXTS = [
 "💀 Men: hammasi nazorat ostida. Hayot: yo'q.",
 "🗣️ NIIIMAGAAAAP?!",
 "🗣️ SIX SEVEN!",
-"Mam: Men senga necha marta aytdim?",
-"Mam: sen odam bo'laysan kuchuk",
-"Mam: sendan kora it baqsam yaxshi edi",
-"Mam: Qachon odam bo'lasan?",
-"Mam: Telefonni qo'y!",
-"Mam: Telefoningdan bosh ko'tarmaysan.",
-"Mam: Kompyuterni o'chir!",
-"Mam: Yana kompyuterda o'tiribsanmi?",
-"Mam: Avval darsingni qil, keyin o'yna.",
-"Mam: Qara, qo'shnining bolasi nima qilyapti.",
-"Mam: Qara, qo'shnining bolasi IELTS'dan 9 olibdi.",
-"Mam: Men sening yoshingda...",
-"Mam: Bizning paytimizda bunaqa narsalar yo'q edi.",
-"Mam: Uyda hech narsa qilmay o'tiribsan.",
-"Mam: Xonangni yig'ishtir!",
-"Mam: Uyingni uy qil!",
-"Mam: Eshikni yop!",
-"Mam: Chiroqni o'chir, elektr tekin emas.",
-"Mam: Suvni bekorga oqizma!",
-"Mam: Kranni yop!",
-"Mam: Ovqat tayyor, kel!",
-"Mam: Ovqating sovib qoldi!",
-"Mam: Ovqatni tashlab ketma!",
-"Mam: Qorning och bo'lmasa ham ovqat ye.",
-"Mam: Choy ichib ol.",
-"Mam: Nonni uvol qilma!",
-"Mam: Nonni yerga tashlama!",
-"Mam: Sovuq, ustingga biror narsa kiy!",
-"Mam: Kurtkangni kiyib ol!",
-"Mam: Paypoq kiy!",
-"Mam: Kasal bo'lib qolasan!",
-"Mam: Ko'chada ko'p yurmagin.",
-"Mam: Qayerga ketyapsan?",
-"Mam: Kim bilan ketyapsan?",
-"Mam: Qachon qaytasan?",
-"Mam: Telefoningni zaryadga qo'y.",
-"Mam: Telefoning o'chib qolmasin.",
-"Mam: Internetni kim to'layapti o'zi?",
-"Mam: Pul daraxtda o'smaydi.",
-"Mam: Pulni supurib olyapmanmi?!",
-"Mam: Do'konga borib kel.",
-"Mam: Yo'lda non olib kel.",
-"Mam: Axlatni chiqarib qo'y.",
-"Mam: Mehmon keladi, uyni yig'ishtir!",
-"Mam: Mehmonlar oldida bunaqa gapirma.",
-"Mam: Salom berishni o'rgan.",
-"Mam: Kattalarga hurmat bilan gapir.",
-"Mam: Men aytmasam o'zing qilolmaysanmi?",
-"Mam: Bitta ishni ham vaqtida qilmaysan.",
-"Mam: Hozir qilaman deganing qachon keladi?",
-"Mam: Keyin qilaman deganing — hech qachonmi?",
-"Mam: Ertaga qilaman demagin.",
-"Mam: Tur, tush bo'lib ketdi!",
-"Mam: Yana uxlayapsanmi?",
-"Mam: Kechasi vaqtida uxla!",
-"Mam: Ertalab turish qiyin bo'ladi.",
-"Mam: Ko'zing buziladi, telefonga kamroq qara.",
-"Mam: Quloqchin bilan yuraverma!",
-"Mam: Ovozni pasaytir!",
-"Mam: Nima eshityapsan o'zi?",
-"Mam: Kim bilan gaplashyapsan?",
-"Mam: Nima kulasan?",
-"Mam: Nima bo'ldi?",
-"Mam: Tinch o'tir.",
-"Mam: O'zingni bos.",
-"Mam: Odamlar nima deydi?",
-"Mam: Boshqalarga qarab ish qilma.",
-"Mam: Odamlar tomdan tashlasa, sen ham tashla!",
-"Mam: Boshing toshdan bo'lsin.",
-"Mam: Yaxshi o'qi, kelajakda o'zingga kerak bo'ladi.",
-"Mam: O'qish kerak, bolam.",
-"Mam: Bir kun kelib o'zing tushunasan.",
-"Mam: Men sen uchun aytyapman.",
-"Mam: Men senga yomonlik tilamayman.",
-"Mam: Gapimni bir marta eshit.",
-"Mam: Necha marta takrorlayman?",
-"Mam: Yana aytib o'tirmayman.",
-"Mam: Hozir borib qil!",
-"Mam: Hozir deganim — hozir!",
-"Mam: Besh daqiqang bir soat bo'ldi.",
-"Mam: Bo'ldi, yetadi.",
-"Mam: Qani, tur!",
-"Mam: Qo'y, o'zim qilaman.",
-"Mam: Kel, yordam ber.",
-"Mam: Buni qayerdan o'rganding?",
-"Mam: Kim o'rgatdi senga?",
-"Mam: O'zing o'ylab ko'r.",
-"Mam: Meni ham bir marta tingla.",
-"Mam: Onangning gapini eshit.",
-"Mam: Boshimga qo'y!",
 "💸 Pul topish uchun ishlash kerak, bomj.",
 "🥤 Bir og'iz Cola so'radi — olib keldim.",
 "🍊 Mandarinni ochadi.",
@@ -959,7 +1262,8 @@ SPLASH_TEXTS = [
 "⚡ Server tirik. Hozircha.",
 "🧑‍💻 Ctrl+Z hayotda ham bo'lsa edi.",
 "🐷👑 Technoblade never dies. NEVER DIES!",
-"java.py java dasturlash tili men bu yerda nima qilyapman o'zi... java:mani java.py deb chaqirmanglar, iltimos"
+"java.py java dasturlash tili men bu yerda nima qilyapman o'zi... java:mani java.py deb chaqirmanglar, iltimos",
+"hamma joy sevgi muhabetga to'la",
 ]
 
 
@@ -1125,10 +1429,16 @@ def is_bad_word_present(text: str, bad_words: list) -> bool:
 # TAQIQLANGAN SO'ZLARNI USHLASH VA RASM YUBORISH (HANDLER)
 # ==========================================
 
-@dp.message(F.text & ~F.text.startswith("/") & F.chat.type.in_({"group", "supergroup"}))
+@dp.message(
+    lambda message: (
+        message.chat.type in {"group", "supergroup"}
+        and bool(message.text)
+        and is_bad_word_present(message.text, BAD_WORDS)
+    )
+)
 async def check_bad_words_handler(message: types.Message):
     if not message.text:
-        raise SkipHandler
+        return
 
     # Matn ichida taqiqlangan so'z bor-yo'qligini yangi funksiya orqali tekshiramiz
     has_bad_word = is_bad_word_present(message.text, BAD_WORDS)
@@ -1164,9 +1474,6 @@ async def check_bad_words_handler(message: types.Message):
                 )
         except Exception as e:
             logging.error(f"Ogohlantirish rasmini yuborishda xato: {e}")
-        return
-
-    raise SkipHandler
 # ==========================================
 # HTTP ADMIN SERVER (WEBSITE INTEGRATION)
 # ==========================================
@@ -1593,16 +1900,24 @@ async def unlink_command(message: types.Message):
 # =========================================================
 
 @dp.message(Command("text"))
-async def text_command(message: types.Message):
+async def text_command(message: types.Message, command: CommandObject):
+    # 1. Agar SPLASH_TEXTS bo'sh bo'lsa yoki topilmasa, zaxira matnlari ishlaydi
+    splash_list = getattr(globals().get('SPLASH_TEXTS'), 'copy', lambda: [])() or [
+        "Bugun ajoyib kun! ✨",
+        "Curina Bot siz bilan! 🚀",
+        "Omad har doim siz tarafda bo'lsin! 🌟"
+    ]
+    
+    selected_text = random.choice(splash_list)
 
-    text = random.choice(SPLASH_TEXTS)
-
-    await message.answer(
-        f"🌟 <b>Random Splash Text:</b>\n\n{text}",
-        parse_mode="HTML"
-    )
-
-
+    # 2. Xabarni xavfsiz yuborish
+    try:
+        await message.answer(
+            f"🌟 <b>Random Splash Text:</b>\n\n{selected_text}",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logging.error(f"Text command error: {e}")
 # =========================================================
 # RANDOM QUESTION
 # =========================================================
@@ -2174,120 +2489,87 @@ async def blocked_sticker_listener(message: types.Message):
 
 
 
-# ===# =====================================================
-# SALOM LISTENER
+# =====================================================
+# SALOM LISENER (MUSTAQIL HANDLER)
 # =====================================================
 
-HELLO_IMAGE_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "hello.jpg"
-)
+HELLO_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "hello.jpg")
+HELLO_KEYWORDS = ("salom", "assalomu alaykum", "salom alaykum", "privet", "hello")
+HELLO_COOLDOWN_SECONDS = 60 * 60
+hello_last_replies = {}
 
 @dp.message(
-    F.text,
-    F.chat.type.in_({"group", "supergroup"})
+    lambda message: (
+        message.chat.type in {"group", "supergroup"}
+        and bool(message.text)
+        and any(keyword in message.text.lower() for keyword in HELLO_KEYWORDS)
+    )
 )
 async def hello_listener(message: types.Message):
     text = message.text.lower().strip()
+    
+    if any(keyword in text for keyword in HELLO_KEYWORDS):
+        user_id = message.from_user.id if message.from_user else None
+        cooldown_key = (message.chat.id, user_id)
+        current_time = time.monotonic()
+        last_reply_time = hello_last_replies.get(cooldown_key, 0)
 
-    hello_keywords = [
-        "salom",
-        "assalomu alaykum",
-        "salom alaykum",
-        "privet",
-        "hello"
-    ]
+        if current_time - last_reply_time < HELLO_COOLDOWN_SECONDS:
+            return
 
-    # Salomlashish bo'lmasa boshqa handlerlarga o'tadi
-    if not any(keyword in text for keyword in hello_keywords):
-        raise SkipHandler
+        hello_last_replies[cooldown_key] = current_time
+        owner_name = "Guruh egasi"
 
-    # =================================================
-    # GURUH EGASINI ANIQLASH
-    # =================================================
+        try:
+            admins = await message.chat.get_administrators()
+            for admin in admins:
+                if admin.status == "creator":
+                    if admin.user.username:
+                        owner_name = f"@{admin.user.username}"
+                    else:
+                        owner_name = admin.user.full_name
+                    break
+        except Exception as e:
+            logging.error(f"Ownerni aniqlashda xato: {e}")
 
-    owner_name = "Guruh egasi"
+        user_name = message.from_user.first_name if message.from_user else "Foydalanuvchi"
+        hello_responses = [
+            f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
+            f"👋 Assalomu alaykum, {user_name}! {owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
+            f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... Nima gaplar, {user_name}? 🎮",
+            f"🤖 Salom, {user_name}! Men <b>Curina</b>man, {owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
+            f"🔥 Ooo salom, {user_name}! {owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
+        ]
 
-    try:
-        admins = await bot.get_chat_administrators(message.chat.id)
+        selected_caption = random.choice(hello_responses)
 
-        for admin in admins:
-            if admin.status == "creator":
-                if admin.user.username:
-                    owner_name = f"@{admin.user.username}"
-                else:
-                    owner_name = admin.user.full_name
-                break
+        try:
+            if os.path.exists(HELLO_IMAGE_PATH):
+                photo = FSInputFile(HELLO_IMAGE_PATH)
+                await message.reply_photo(
+                    photo=photo,
+                    caption=selected_caption,
+                    parse_mode="HTML"
+                )
+            else:
+                await message.reply(
+                    text=selected_caption,
+                    parse_mode="HTML"
+                )
+        except Exception as e:
+            logging.error(f"Salomlashish javobida xato: {e}")
+            await message.reply(selected_caption, parse_mode="HTML")
 
-    except Exception as e:
-        logging.error(f"Ownerni aniqlashda xato: {e}")
-
-    # =================================================
-    # FOYDALANUVCHI
-    # =================================================
-
-    user_name = (
-        message.from_user.first_name
-        if message.from_user
-        else "Foydalanuvchi"
-    )
-
-    hello_responses = [
-        f"👀 <b>{owner_name} sizni doim eshitadi, bemalol gapiravering!</b> 💻😎",
-
-        f"👋 Assalomu alaykum, {user_name}! "
-        f"{owner_name} bilan birga sizga ajoyib kayfiyat tilaymiz! ✨",
-
-        f"🎧 {owner_name} quloqda, chatni kuzatib bormoqda... "
-        f"Nima gaplar, {user_name}? 🎮",
-
-        f"🤖 Salom, {user_name}! Men <b>Curina</b>man, "
-        f"{owner_name}ning sodiq yordamchisiman. Xush kelibsiz! ⚡",
-
-        f"🔥 Ooo salom, {user_name}! "
-        f"{owner_name} va men xizmatingizdamiz, bemalol yozing! 🚀"
-    ]
-
-    selected_caption = random.choice(hello_responses)
-
-    # =================================================
-    # JAVOB
-    # =================================================
-
-    try:
-        if os.path.exists(HELLO_IMAGE_PATH):
-            photo = FSInputFile(HELLO_IMAGE_PATH)
-
-            await message.reply_photo(
-                photo=photo,
-                caption=selected_caption,
-                parse_mode="HTML"
-            )
-        else:
-            await message.reply(
-                selected_caption,
-                parse_mode="HTML"
-            )
-
-    except Exception as e:
-        logging.error(f"Salomlashish javobida xato: {e}")
-
-        await message.reply(
-            selected_caption,
-            parse_mode="HTML"
-        )
-
-    # Keyingi handlerlar ham ishlashi mumkin
-    raise SkipHandler
 # =====================================================
 # CHAT LISTENER (TAQIQLAR VA HAVOLALAR)
 # =====================================================
 
-@dp.message(F.text & F.chat.type.in_({"group", "supergroup"}))
+@dp.message((F.text | F.caption) & F.chat.type.in_({"group", "supergroup"}))
 async def chat_listener(message: types.Message):
+    message_text = message.text or message.caption or ""
 
     if message.from_user and is_user_link_blocked(message.chat.id, message.from_user.id):
-        if has_link(message.text):
+        if has_link(message_text):
             try:
                 await message.delete()
             except Exception:
@@ -2303,7 +2585,7 @@ async def chat_listener(message: types.Message):
             return
 
     # Taqiqlangan linklarni tekshirish
-    if has_blocked_link(message.text):
+    if has_blocked_link(message_text):
         try:
             await message.delete()
             await message.answer("🚫 Xabarda taqiqlangan link mavjud!")
@@ -2312,7 +2594,7 @@ async def chat_listener(message: types.Message):
         return
 
     # Taqiqlangan so'zlarni tekshirish (Regex orqali to'g'rilangan)
-    if is_bad_word_present(message.text, BAD_WORDS):
+    if message.text and is_bad_word_present(message.text, BAD_WORDS):
         try:
             await message.delete()
             await message.answer("🚫 Bu guruhda bunday kontent taqiqlangan!")

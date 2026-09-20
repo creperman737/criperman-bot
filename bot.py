@@ -1334,7 +1334,17 @@ SAVOLLAR = [
     "🧠 Odamni o'zgartiradigan narsa uning xatosi emas, uning o'zi ko'rgan haqiqatmi?",
     "🏔️ Katta yutuq ba'zan kichik qarordan boshlanadimi?",
     "🌞 Nega ba'zi odamlar bir marta yaxshi ish qilgach, uni butun hayot uchun mukofot deb qarashadi?",
-    "🧵 Odam o'zini tasvir qilishda qanchalik so'zlardan foydalanadi?"
+    "🧵 Odam o'zini tasvir qilishda qanchalik so'zlardan foydalanadi?",
+    "Hayot faqat qayg‘udan iborat emas-ku, shunday emasmi?",
+    "Faqat unutilmaydigan narsalargina go‘zal emasdir, shunday emasmi?",
+    "Faqat unutishning o‘zigina go‘zal emasdir, shunday emasmi?",
+    "Hayot faqat qayg‘uli holatlardan iborat emasdir, shunday emasmi?",
+    "bu dunyoda haqiqat qilgan mi?",
+    "nimaga musulmon bola turib boshqalarni kamsitamiz va urushlar qilamiz yoki musulmon emasmisizlar?",
+    "nimaga odamlar oʻzlarini kam oʻylaydi?",
+    "hayot hato orqali yaratilgan boʻlsa nimaga odam hato qilishdan qoʻrqadi?",
+    "urushish haram boʻlsa bokischilar haram pul topadimi?",
+    "3ta rang orqali hamma rangni chiqarib bolsa nimaga kammalakda 7ta rang boʻldi?",
 ]
 
 # ==========================================
